@@ -7,17 +7,29 @@ router = APIRouter()
 scheduler = Scheduler()
 
 
-@router.post("/schedulers/{scheduler_name}/set")
-async def set_scheduler(scheduler_name: str, schema: SetSchedulerSchema) -> Any:
-    if scheduler_name != schema.name:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Scheduler {scheduler_name} does not match the target {schema.name}",
-        )
-
+@router.post("/schedulers/set")
+async def set_scheduler(schema: SetSchedulerSchema) -> Any:
     try:
-        scheduler.set_inner(schema.name, schema.config)
+        await scheduler.set_inner(schema.name, schema.config)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return schema.dict()
+    return {"message": "Scheduler set", "name": schema.name, "config": schema.config}
+
+
+@router.get("/schedulers/metadata")
+async def get_scheduler_metadata() -> Any:
+    try:
+        return scheduler.get_metadata()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/schedulers/delete")
+async def delete_scheduler() -> Any:
+    try:
+        await scheduler.delete_inner()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"message": "Scheduler deleted"}
