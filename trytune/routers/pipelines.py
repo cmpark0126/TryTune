@@ -18,6 +18,6 @@ async def get_metadata(pipeline: str):
 
 
 @router.post("/pipelines/{pipeline}/infer")
-async def infer(pipeline: str, infer_data: common.InferData):
-    print(f"Received request for model {pipeline} with data: {infer_data}")
-    return infer_data
+async def infer(pipeline: str, infer: common.InferSchema):
+    print(f"Received request for model {pipeline} with data: {infer}")
+    return infer
