@@ -6,13 +6,12 @@ from trytune.services.model_registry import ModelRegistry
 
 
 router = APIRouter()
-model_registry = ModelRegistry()
 
 
 @router.get("/models/{model}/metadata")
 async def get_metadata(model: str) -> Any:
     try:
-        return model_registry.get_metadata(model)
+        return ModelRegistry.get_metadata(model)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
@@ -33,7 +32,7 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
 
 @router.post("/models/{model}/add")
 async def add_model(model: str, schema: model.AddModelSchema) -> Any:
-    if model in model_registry.models:
+    if model in ModelRegistry.models:
         raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
 
     # Send the request to the triton server to get model metadata
@@ -53,7 +52,7 @@ async def add_model(model: str, schema: model.AddModelSchema) -> Any:
             )
 
     # add model to model registry
-    model_registry.add(model, {"urls": schema.urls, "metadata": metadata})
+    ModelRegistry.add(model, {"urls": schema.urls, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata
@@ -61,6 +60,21 @@ async def add_model(model: str, schema: model.AddModelSchema) -> Any:
 
 @router.post("/models/{model}/infer")
 async def infer(model: str, schema: common.InferSchema) -> Any:
-    # TODO: send the request to scheduler services
+    if model != schema.target:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Model {model} does not match the target {schema.target}",
+        )
 
-    return schema
+    try:
+        _metadata = ModelRegistry.get_metadata(model)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Model {model} not found.")
+
+    # TODO: Validate the schema is correct using metadata
+
+    # TODO: send the request to scheduler services and return results
+    try:
+        return schema
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

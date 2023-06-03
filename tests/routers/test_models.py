@@ -19,13 +19,15 @@ def client() -> TestClient:
 def test_model_scenario(client) -> None:  # type: ignore
     model = "test_model"
     model_add_schema = {
-        "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8000", "g5.xlarge": "http://g5.xlarge:8000"}
+        "name": model,
+        "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8000", "g5.xlarge": "http://g5.xlarge:8000"},
     }
     model_add_schema_2 = {
-        "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8001", "g5.xlarge": "http://g5.xlarge:8001"}
+        "name": model,
+        "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8001", "g5.xlarge": "http://g5.xlarge:8001"},
     }
     infer_schema = {
-        "target": "pipe1",
+        "target": model,
         "inputs": [
             {"name": "i1", "data": [1, 2, 3]},
             {"name": "i2", "data": [4, 5, 6]},
@@ -51,7 +53,7 @@ def test_model_scenario(client) -> None:  # type: ignore
     assert response.status_code == 404
 
     # Add model with no urls
-    response = client.post(f"/models/{model}/add", json={"urls": {}})
+    response = client.post(f"/models/{model}/add", json={"name": model, "urls": {}})
     assert response.status_code == 400
 
     # Mock the response from the triton server

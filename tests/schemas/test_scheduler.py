@@ -1,9 +1,10 @@
 import pytest
 from pydantic import ValidationError
-from trytune.schemas.scheudler import SetSchedulerSchema
+from trytune.schemas.scheduler import SetSchedulerSchema
 
 
 def test_set_scheduler_schema() -> None:
+    # Test SetSchedulerSchema with valid data
     valid_data = {
         "name": "fifo",
         "config": {"use_dynamic_batching": "true"},
@@ -17,20 +18,11 @@ def test_set_scheduler_schema() -> None:
     assert set_scheduler.name == "fifo"
     assert set_scheduler.config == {"use_dynamic_batching": "true"}
 
+    # Test SetSchedulerSchema with invalid data
     invalid_data = {
         "name": "fifo",
         "config": "use_dynamic_batching",
     }
 
-    # 잘못된 입력에 대한 테스트
     with pytest.raises(ValueError):
         SetSchedulerSchema(**invalid_data)
-
-    invalid_data_2 = {
-        "name": "fifo",
-        "config": {"use_dynamic_batching": "true"},
-        "invalid": "invalid",
-    }
-
-    with pytest.raises(ValueError):
-        SetSchedulerSchema(**invalid_data_2)

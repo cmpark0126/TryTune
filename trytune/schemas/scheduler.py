@@ -20,4 +20,4 @@ class SetSchedulerSchema(BaseModel):
     """
 
     name: str
-    config: Optional[Dict[str, Any]] = None
+    config: Dict[str, Any]

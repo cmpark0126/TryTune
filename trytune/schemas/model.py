@@ -12,8 +12,7 @@ class AddModelSchema(BaseModel):
     Example:
         If user sends a request to add a model with the following information:
         {
-            # all urls are linked to the triton servers serving same model
-            # but run on different instance types
+            "name": "resnet50",
             "urls": {
                 "g4dn.xlarge": "eks.ingress.url/g4dn"
                 "g5.xlarge": "eks.ingress.url/g5"
@@ -21,6 +20,7 @@ class AddModelSchema(BaseModel):
                 ...
             }
         }
+        FYI, all urls are linked to the triton servers serving same model but run on different instance types
 
         Then the model registry will store the following information
         obtained from the triton server:
@@ -38,4 +38,5 @@ class AddModelSchema(BaseModel):
 
     """
 
+    name: str
     urls: Dict[str, str]
