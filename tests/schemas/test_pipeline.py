@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from trytune.schemas.pipelines import PipelineAddSchema
 
 
-def test_pipeline_add_schema():
+def test_pipeline_add_schema() -> None:
     valid_data = {
         "name": "pipe1",
         "tensors": {

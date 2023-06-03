@@ -3,7 +3,7 @@ from pydantic import ValidationError
 from trytune.schemas.common import InferSchema
 
 
-def test_infer_schema():
+def test_infer_schema() -> None:
     valid_data = {
         "target": "pipe1",
         "inputs": [

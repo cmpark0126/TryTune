@@ -1,9 +1,10 @@
 import pytest
 from pydantic import ValidationError
+from typing import Dict, Any
 from trytune.schemas.model import ModelAddSchema
 
 
-def test_model_add_schema():
+def test_model_add_schema() -> None:
     valid_data = {
         "urls": {
             "g4dn.xlarge": "eks.ingress.url/g4dn",
@@ -24,7 +25,7 @@ def test_model_add_schema():
     assert model_add.urls["inf1.xlarge"] == "eks.ingress.url/inf1"
 
     # Test missing required field
-    invalid_data = {}
+    invalid_data: Dict[str, Any] = {}
 
     with pytest.raises(ValidationError):
         ModelAddSchema(**invalid_data)

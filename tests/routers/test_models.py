@@ -7,14 +7,14 @@ from trytune.routers import models  # replace 'your_application' with the name o
 
 
 @pytest.fixture
-def client():
+def client() -> TestClient:
     app = FastAPI()
     app.include_router(models.router)
     return TestClient(app)
 
 
 @respx.mock
-def test_model_scenario(client):
+def test_model_scenario(client) -> None:  # type: ignore
     model = "test_model"
     model_add_schema = {
         "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8000", "g5.xlarge": "http://g5.xlarge:8000"}

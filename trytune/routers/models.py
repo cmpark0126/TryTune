@@ -2,26 +2,17 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from typing import Any
 from trytune.schemas import common, model
-
-
-# Class to store model metadatas and links to triton servers.
-class ModelRegistry:
-    models = {}
-
-    def add(model_name, model_info):
-        ModelRegistry.models[model_name] = model_info
-
-    def get_metadata(model_name):
-        return ModelRegistry.models[model_name]
+from trytune.services.model_registry import ModelRegistry
 
 
 router = APIRouter()
+model_registry = ModelRegistry()
 
 
 @router.get("/models/{model}/metadata")
-async def get_metadata(model: str):
+async def get_metadata(model: str) -> Any:
     try:
-        return ModelRegistry.get_metadata(model)
+        return model_registry.get_metadata(model)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
@@ -41,8 +32,8 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
 
 
 @router.post("/models/{model}/add")
-async def add_model(model: str, schema: model.ModelAddSchema):
-    if model in ModelRegistry.models:
+async def add_model(model: str, schema: model.ModelAddSchema) -> Any:
+    if model in model_registry.models:
         raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
 
     # Send the request to the triton server to get model metadata
@@ -62,14 +53,14 @@ async def add_model(model: str, schema: model.ModelAddSchema):
             )
 
     # add model to model registry
-    ModelRegistry.add(model, {"urls": schema.urls, "metadata": metadata})
+    model_registry.add(model, {"urls": schema.urls, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata
 
 
 @router.post("/models/{model}/infer")
-async def infer(model: str, infer: common.InferSchema):
+async def infer(model: str, infer: common.InferSchema) -> Any:
     # TODO: send the request to scheduler services
 
     return infer
