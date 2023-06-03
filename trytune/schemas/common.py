@@ -17,7 +17,7 @@ class InferSchema(BaseModel):
 
     Example:
         {
-            "name": "pipe1",
+            "target": "pipe1",
             "inputs": [
                 {"name": "i1", "data": [1.0, 2.0, 3.0]},
                 {"name": "i2", "data": [1.0, 2.0, 3.0]},

@@ -5,7 +5,7 @@ from trytune.schemas.model import ModelAddSchema
 
 def test_model_add_schema():
     valid_data = {
-        "linkes": {
+        "urls": {
             "g4dn.xlarge": "eks.ingress.url/g4dn",
             "g5.xlarge": "eks.ingress.url/g5",
             "inf1.xlarge": "eks.ingress.url/inf1",
@@ -19,9 +19,9 @@ def test_model_add_schema():
         assert False, f"Failed to create schema instance with valid data: {e}"
 
     # Access schema fields
-    assert model_add.linkes["g4dn.xlarge"] == "eks.ingress.url/g4dn"
-    assert model_add.linkes["g5.xlarge"] == "eks.ingress.url/g5"
-    assert model_add.linkes["inf1.xlarge"] == "eks.ingress.url/inf1"
+    assert model_add.urls["g4dn.xlarge"] == "eks.ingress.url/g4dn"
+    assert model_add.urls["g5.xlarge"] == "eks.ingress.url/g5"
+    assert model_add.urls["inf1.xlarge"] == "eks.ingress.url/inf1"
 
     # Test missing required field
     invalid_data = {}

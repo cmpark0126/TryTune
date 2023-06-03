@@ -7,14 +7,14 @@ class ModelAddSchema(BaseModel):
     Schema for adding model.
 
     Attributes:
-        linkes (dict): A dictionary of triton server links for each instance type.
+        urls (dict): A dictionary of triton server urls for each instance type.
 
     Example:
         If user sends a request to add a model with the following information:
         {
-            # all links are linked to the triton servers serving same model
+            # all urls are linked to the triton servers serving same model
             # but run on different instance types
-            "linkes": {
+            "urls": {
                 "g4dn.xlarge": "eks.ingress.url/g4dn"
                 "g5.xlarge": "eks.ingress.url/g5"
                 "inf1.xlarge": "eks.ingress.url/inf1"
@@ -38,4 +38,4 @@ class ModelAddSchema(BaseModel):
 
     """
 
-    linkes: Dict[str, str]
+    urls: Dict[str, str]
