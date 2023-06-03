@@ -33,12 +33,13 @@ def test_model_scenario(client):
         ],
     }
 
-    route_1 = respx.get(f"http://localhost:8000/v2/models/{model}").mock(
-        return_value=Response(200, json=dummy_model_metadata)
-    )
     response = client.get(f"/models/{model}/metadata")
     assert response.status_code == 404
 
+    # Mock the response from the triton server
+    route_1 = respx.get(f"http://localhost:8000/v2/models/{model}").mock(
+        return_value=Response(200, json=dummy_model_metadata)
+    )
     response = client.post(f"/models/{model}/add", json=model_add_schema)
     assert route_1.called
     assert response.status_code == 200
