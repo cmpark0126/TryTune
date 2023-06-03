@@ -24,7 +24,7 @@ class StageSchema(BaseModel):
     outputs: List[StageIO]
 
 
-class PipelineAddSchema(BaseModel):
+class AddPipelineSchema(BaseModel):
     """
     Schema for adding a pipeline. Can be formed by DAG.
 

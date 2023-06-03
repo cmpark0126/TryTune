@@ -32,7 +32,7 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
 
 
 @router.post("/models/{model}/add")
-async def add_model(model: str, schema: model.ModelAddSchema) -> Any:
+async def add_model(model: str, schema: model.AddModelSchema) -> Any:
     if model in model_registry.models:
         raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
 
@@ -60,7 +60,7 @@ async def add_model(model: str, schema: model.ModelAddSchema) -> Any:
 
 
 @router.post("/models/{model}/infer")
-async def infer(model: str, infer: common.InferSchema) -> Any:
+async def infer(model: str, schema: common.InferSchema) -> Any:
     # TODO: send the request to scheduler services
 
-    return infer
+    return schema

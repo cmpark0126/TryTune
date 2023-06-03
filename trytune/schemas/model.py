@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Dict
 
 
-class ModelAddSchema(BaseModel):
+class AddModelSchema(BaseModel):
     """
     Schema for adding model.
 

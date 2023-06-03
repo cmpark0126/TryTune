@@ -9,6 +9,8 @@ from trytune.routers import models  # replace 'your_application' with the name o
 @pytest.fixture
 def client() -> TestClient:
     app = FastAPI()
+
+    # To test the router, you need to include it in the app.
     app.include_router(models.router)
     return TestClient(app)
 

@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from trytune.schemas.pipelines import PipelineAddSchema
+from trytune.schemas.pipeline import AddPipelineSchema
 
 
 def test_pipeline_add_schema() -> None:
@@ -31,27 +31,27 @@ def test_pipeline_add_schema() -> None:
 
     # Test valid data
     try:
-        pipeline = PipelineAddSchema(**valid_data)
+        add_pipeline = AddPipelineSchema(**valid_data)
     except ValidationError as e:
-        assert False, f"Failed to create PipelineAddSchema instance with valid data: {e}"
+        assert False, f"Failed to create AddPipelineSchema instance with valid data: {e}"
 
     # Access schema fields
-    assert pipeline.name == "pipe1"
-    assert len(pipeline.tensors.inputs) == 1
-    assert pipeline.tensors.inputs[0].name == "pinput__0"
-    assert len(pipeline.tensors.outputs) == 1
-    assert pipeline.tensors.outputs[0].name == "poutput__0"
-    assert len(pipeline.tensors.interms) == 1
-    assert pipeline.tensors.interms[0].name == "pinterm__0"
-    assert len(pipeline.stages) == 2
-    assert pipeline.stages[0].name == "classifier"
-    assert pipeline.stages[0].model == "resnet50"
-    assert len(pipeline.stages[0].inputs) == 1
-    assert pipeline.stages[0].inputs[0].src == "input__0"
-    assert pipeline.stages[0].inputs[0].tgt == "pinput__0"
-    assert len(pipeline.stages[0].outputs) == 1
-    assert pipeline.stages[0].outputs[0].src == "output__0"
-    assert pipeline.stages[0].outputs[0].tgt == "pinterm__0"
+    assert add_pipeline.name == "pipe1"
+    assert len(add_pipeline.tensors.inputs) == 1
+    assert add_pipeline.tensors.inputs[0].name == "pinput__0"
+    assert len(add_pipeline.tensors.outputs) == 1
+    assert add_pipeline.tensors.outputs[0].name == "poutput__0"
+    assert len(add_pipeline.tensors.interms) == 1
+    assert add_pipeline.tensors.interms[0].name == "pinterm__0"
+    assert len(add_pipeline.stages) == 2
+    assert add_pipeline.stages[0].name == "classifier"
+    assert add_pipeline.stages[0].model == "resnet50"
+    assert len(add_pipeline.stages[0].inputs) == 1
+    assert add_pipeline.stages[0].inputs[0].src == "input__0"
+    assert add_pipeline.stages[0].inputs[0].tgt == "pinput__0"
+    assert len(add_pipeline.stages[0].outputs) == 1
+    assert add_pipeline.stages[0].outputs[0].src == "output__0"
+    assert add_pipeline.stages[0].outputs[0].tgt == "pinterm__0"
 
     # Test missing required field
     invalid_data = {
@@ -79,7 +79,7 @@ def test_pipeline_add_schema() -> None:
     }
 
     with pytest.raises(ValidationError):
-        PipelineAddSchema(**invalid_data)
+        AddPipelineSchema(**invalid_data)
 
     # Test missing required field
     invalid_data = {
@@ -107,4 +107,4 @@ def test_pipeline_add_schema() -> None:
     }
 
     with pytest.raises(ValidationError):
-        PipelineAddSchema(**invalid_data)
+        AddPipelineSchema(**invalid_data)
