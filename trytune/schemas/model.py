@@ -14,9 +14,9 @@ class AddModelSchema(BaseModel):
         {
             "name": "resnet50",
             "urls": {
-                "g4dn.xlarge": "eks.ingress.url/g4dn"
-                "g5.xlarge": "eks.ingress.url/g5"
-                "inf1.xlarge": "eks.ingress.url/inf1"
+                "g4dn.xlarge": "http://eks.ingress.url/g4dn"
+                "g5.xlarge": "http://eks.ingress.url/g5"
+                "inf1.xlarge": "http://eks.ingress.url/inf1"
                 ...
             }
         }
@@ -35,6 +35,9 @@ class AddModelSchema(BaseModel):
         }
 
         Finnaly, send the above information back to the user also.
+
+    Warning:
+        URL should start with "http://" or "https://"
 
     """
 
