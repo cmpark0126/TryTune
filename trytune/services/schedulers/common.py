@@ -28,6 +28,12 @@ async def infer_with_triton(
     model_metadata: Dict[str, Any],
     inputs: List[DataSchema],
 ) -> Any:
+    """
+    Request to triton server to infer the model with the given inputs.
+
+    References:
+        https://github.com/triton-inference-server/client/blob/main/src/python/examples/simple_http_aio_infer_client.py
+    """
     infer_inputs: List[httpclient.InferInput] = []
     infer_requested_outputs: List[httpclient.InferRequestedOutput] = []
 
