@@ -6,12 +6,13 @@ from trytune.services.model_registry import ModelRegistry
 
 
 router = APIRouter()
+model_registry = ModelRegistry()
 
 
 @router.get("/models/{model}/metadata")
 async def get_metadata(model: str) -> Any:
     try:
-        return ModelRegistry.get_metadata(model)
+        return model_registry.get_metadata(model)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
@@ -32,7 +33,7 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
 
 @router.post("/models/add")
 async def add_model(schema: model.AddModelSchema) -> Any:
-    if schema.name in ModelRegistry.models:
+    if schema.name in model_registry.models:
         raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
 
     # Send the request to the triton server to get model metadata
@@ -52,7 +53,7 @@ async def add_model(schema: model.AddModelSchema) -> Any:
             )
 
     # add model to model registry
-    ModelRegistry.add(schema.name, {"urls": schema.urls, "metadata": metadata})
+    model_registry.add(schema.name, {"urls": schema.urls, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata
@@ -67,7 +68,7 @@ async def infer(model: str, schema: common.InferSchema) -> Any:
         )
 
     try:
-        _metadata = ModelRegistry.get_metadata(model)
+        _metadata = model_registry.get_metadata(model)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 

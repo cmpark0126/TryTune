@@ -5,12 +5,11 @@ from typing import Any, Dict
 # FIXME: Avoid using singleton pattern and class variables.
 # FIXME: This version of class is not thread-safe.
 class ModelRegistry:
-    models: Dict[str, Dict[str, Any]] = {}
+    def __init__(self) -> None:
+        self.models: Dict[str, Dict[str, Any]] = {}
 
-    @staticmethod
-    def add(model: str, metadata: Dict[str, Any]) -> None:
-        ModelRegistry.models[model] = metadata
+    def add(self, model: str, metadata: Dict[str, Any]) -> None:
+        self.models[model] = metadata
 
-    @staticmethod
-    def get_metadata(model: str) -> Dict[str, Any]:
-        return ModelRegistry.models[model]
+    def get_metadata(self, model: str) -> Dict[str, Any]:
+        return self.models[model]
