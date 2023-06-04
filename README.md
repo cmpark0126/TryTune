@@ -29,7 +29,7 @@ tests/schemas/test_scheduler.py::test_set_scheduler_schema PASSED
 If you want to test real triton server behavior, please follow below:
 ```bash
 $ kubectl get ingress # To check ingress address (without http maybe)
-$ vi tests/routers/test_models.py # modify add_model_schema function with appropriate value
+$ vi tests/routers/conftest.py # modify add_model_schema function with appropriate value
 $ python -m pytest -s -v -k "k8s"
 ...
 collected 6 items / 5 deselected / 1 selected

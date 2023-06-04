@@ -1,20 +1,5 @@
-import pytest
 import respx
-from typing import Dict, Any
 from httpx import Response
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from trytune.routers import models, scheduler
-
-
-@pytest.fixture
-def client() -> TestClient:
-    app = FastAPI()
-
-    # To test the router, you need to include it in the app.
-    app.include_router(models.router)
-    app.include_router(scheduler.router)
-    return TestClient(app)
 
 
 @respx.mock
@@ -117,19 +102,6 @@ def test_model_scenario(client) -> None:  # type: ignore
     # assert len(result) == 1
     # assert "output__1" in result
     # assert len(result["output__0"].data) == 5
-
-
-@pytest.fixture
-def add_model_schema() -> Dict[str, Any]:
-    return {
-        # FIXME: generalize this test
-        # NOTE: we assume we use the model from https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch
-        "name": "resnet50",
-        "urls": {
-            "g4dn.xlarge": "http://<address>:80/path/to/server",
-            "g5.xlarge": "http://<address>:80/path/to/server",
-        },
-    }
 
 
 # For testing on k8s
