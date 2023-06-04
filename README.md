@@ -18,3 +18,5 @@ $ python -m pytest -s -v
 
 # Plan
 * Add logger
+* Add licence
+* Add documentation
