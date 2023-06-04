@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from typing import Any
 from trytune.schemas import common, model
 from trytune.services.models import Models
+from trytune.routers.scheduler import scheduler
 
 
 router = APIRouter()
@@ -72,10 +73,10 @@ async def infer(model: str, schema: common.InferSchema) -> Any:
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
-    # TODO: Validate the schema is correct using metadata
+    outs = await scheduler.infer(schema)
 
     # TODO: send the request to scheduler services and return results
     try:
-        return schema
+        return outs
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -1,5 +1,6 @@
 from trytune.services.scheduler import SchedulerInner
-from typing import Any, Dict
+from trytune.schemas.common import InferSchema, DataSchema
+from typing import Any, Dict, List
 
 
 class FifoScheduler(SchedulerInner):
@@ -14,16 +15,16 @@ class FifoScheduler(SchedulerInner):
         self.config = config
         pass
 
-    async def inference(self, model: str, request: Any) -> Any:
+    async def infer(self, schema: InferSchema) -> List[DataSchema]:
         # TODO: Spawn a new async task to handle the request (directry call the triton server)
         # TODO: When testing, use a mock triton server
         raise NotImplementedError
 
-    async def start(self) -> Any:
-        raise NotImplementedError
+    async def start(self) -> None:
+        pass
 
-    async def stop(self) -> Any:
-        raise NotImplementedError
+    async def stop(self) -> None:
+        pass
 
     def metadata(self) -> Any:
         pass
