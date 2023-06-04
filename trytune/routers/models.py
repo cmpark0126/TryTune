@@ -2,6 +2,7 @@ import httpx
 from urllib.parse import urlparse
 from fastapi import APIRouter, HTTPException
 from typing import Any, List, Dict
+import traceback
 import tritonclient.http.aio as httpclient
 from trytune.schemas import common, model
 from trytune.services.models import models
@@ -64,14 +65,18 @@ async def add_model(schema: model.AddModelSchema) -> Any:
     try:
         metadata = await get_metadata_from_url(schema.name, urls[0])
         check_datatypes(metadata)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"While getting metadata: {traceback.format_exc()}"
+        )
 
     for url in urls[1:]:
         try:
             other = await get_metadata_from_url(schema.name, url)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
+        except Exception:
+            raise HTTPException(
+                status_code=400, detail=f"While getting metadata: {traceback.format_exc()}"
+            )
 
         if metadata != other:
             raise HTTPException(
@@ -80,15 +85,15 @@ async def add_model(schema: model.AddModelSchema) -> Any:
             )
 
     # add model to model registry
-    clents: Dict[str, httpclient.InferenceServerClient] = {}
+    clients: Dict[str, httpclient.InferenceServerClient] = {}
     for instance_type, url in schema.urls.items():
         url_wo_scheme = urlparse(url).netloc
         # FIXME: use ssl to get security
         triton_client = httpclient.InferenceServerClient(url=url_wo_scheme)
-        clents[instance_type] = triton_client
-    assert len(clents) == len(schema.urls)
+        clients[instance_type] = triton_client
+    assert len(clients) == len(schema.urls)
     metadata["urls"] = schema.urls
-    models.set(schema.name, {"clents": clents, "metadata": metadata})
+    models.set(schema.name, {"clients": clients, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata
@@ -116,17 +121,21 @@ async def infer(schema: common.InferSchema) -> Any:
 
     try:
         validate(schema.inputs)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
+        )
 
     try:
         outs = await scheduler.infer(schema)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=400, detail=f"While infering: {traceback.format_exc()}")
 
     try:
         validate(outs)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"While validating outputs: {traceback.format_exc()}"
+        )
 
     return outs

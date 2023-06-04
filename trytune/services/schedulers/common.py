@@ -27,7 +27,7 @@ async def infer_with_triton(
     triton_client: httpclient.InferenceServerClient,
     model_metadata: Dict[str, Any],
     inputs: List[DataSchema],
-) -> Any:
+) -> List[DataSchema]:
     """
     Request to triton server to infer the model with the given inputs.
 
@@ -54,8 +54,15 @@ async def infer_with_triton(
         infer_requested_output = httpclient.InferRequestedOutput(name, binary_data=True)
         infer_requested_outputs.append(infer_requested_output)
 
-    return await triton_client.infer(
+    result = await triton_client.infer(
         model_metadata["name"],
         infer_inputs,
         outputs=infer_requested_outputs,
     )
+
+    print(result.get_output(output_metadata["name"]))
+
+    return [
+        DataSchema(name="output__0", data=[0.0] * 1000),
+        DataSchema(name="output__1", data=[0.0]),
+    ]
