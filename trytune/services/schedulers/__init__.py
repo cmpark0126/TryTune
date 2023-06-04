@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
-from trytune.services.scheduler.fifo import FifoScheduler
+from trytune.services.schedulers.fifo import FifoScheduler
 
 
 class SchedulerInner(ABC):

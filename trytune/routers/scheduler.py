@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import Any
 from trytune.schemas.scheduler import SetSchedulerSchema
-from trytune.services.scheduler import Scheduler
+from trytune.services.schedulers import Scheduler
 
 router = APIRouter()
 scheduler = Scheduler()
