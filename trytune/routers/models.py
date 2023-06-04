@@ -62,6 +62,7 @@ async def add_model(schema: model.AddModelSchema) -> Any:
     # add model to model registry
     clents: Dict[str, httpclient.InferenceServerClient] = {}
     # for instance_type, url in schema.urls.items():
+    #     # FIXME: use ssl to get security
     #     triton_client = httpclient.InferenceServerClient(url=url)
     #     clents[instance_type] = triton_client
     # assert len(clents) == len(schema.urls)
