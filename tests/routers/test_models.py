@@ -1,5 +1,6 @@
 import pytest
 import respx
+from typing import Dict, Any
 from httpx import Response
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -19,7 +20,7 @@ def client() -> TestClient:
 @respx.mock
 def test_model_scenario(client) -> None:  # type: ignore
     model = "test_model"
-    model_add_schema = {
+    add_model_schema = {
         "name": model,
         "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8000", "g5.xlarge": "http://g5.xlarge:8000"},
     }
@@ -43,7 +44,7 @@ def test_model_scenario(client) -> None:  # type: ignore
         return_value=Response(200, json=dummy_model_invalid_datatype)
     )
     # Add model with invalid urls
-    response = client.post(f"/models/add", json=model_add_schema)
+    response = client.post(f"/models/add", json=add_model_schema)
     assert route_1.called
     assert response.status_code == 400
     assert b"Unsupported datatype" in response.content
@@ -70,7 +71,7 @@ def test_model_scenario(client) -> None:  # type: ignore
         return_value=Response(200, json=dummy_model_metadata_crashed)
     )
     # Add model with invalid urls
-    response = client.post(f"/models/add", json=model_add_schema)
+    response = client.post(f"/models/add", json=add_model_schema)
     assert route_1.called
     assert route_2.called
     assert response.status_code == 400
@@ -82,14 +83,14 @@ def test_model_scenario(client) -> None:  # type: ignore
     route_2 = respx.get(f"http://g5.xlarge:8000/v2/models/{model}").mock(
         return_value=Response(200, json=dummy_model_metadata)
     )
-    response = client.post(f"/models/add", json=model_add_schema)
+    response = client.post(f"/models/add", json=add_model_schema)
     assert route_1.called
     assert route_2.called
     assert response.status_code == 200
     obtained_metadata = response.json()
 
     # Add duplicate model
-    response = client.post(f"/models/add", json=model_add_schema)
+    response = client.post(f"/models/add", json=add_model_schema)
     assert response.status_code == 400
 
     # Get metadata
@@ -101,6 +102,7 @@ def test_model_scenario(client) -> None:  # type: ignore
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200
 
+    # TODO: test using mock server
     # infer_schema = {
     #     "target": model,
     #     "inputs": {
@@ -126,3 +128,37 @@ def test_model_scenario(client) -> None:  # type: ignore
     #     assert len(result[0]["data"]) == 1
     # else:
     #     assert False
+
+
+@pytest.fixture
+def add_model_schema() -> Dict[str, Any]:
+    return {
+        "name": "<model_name>",
+        "urls": {
+            "g4dn.xlarge": "http://<address>:80/path/to/server",
+            "g5.xlarge": "http://<address>:80/path/to/server",
+        },
+    }
+
+
+# For testing on k8s
+def test_model_scenario_on_k8s(client, add_model_schema) -> None:  # type: ignore
+    response = client.post(f"/models/add", json=add_model_schema)
+    assert response.status_code == 200
+    obtained_metadata = response.json()
+
+    scheduler_schema = {"name": "fifo", "config": {}}
+    response = client.post(f"/scheduler/set", json=scheduler_schema)
+    assert response.status_code == 200
+
+    infer_schema = {
+        "target": add_model_schema["name"],
+        "inputs": {"input__0": {"data": [0.0] * 3 * 224 * 224}},
+    }
+    response = client.post(f"/models/infer", json=infer_schema)
+    assert response.status_code == 200
+    result = response.json()
+
+    assert len(result) == len(obtained_metadata["outputs"])
+    for output in obtained_metadata["outputs"]:
+        assert output["name"] in result
