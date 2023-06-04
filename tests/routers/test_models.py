@@ -105,35 +105,26 @@ def test_model_scenario(client) -> None:  # type: ignore
     # TODO: test using mock server
     # infer_schema = {
     #     "target": model,
-    #     "inputs": {
-    #         "i1": {"data": [1.0, 2.0, 3.0]},
-    #         "i2": {"data": [4.0, 5.0, 6.0]},
-    #     },
+    #     "inputs": {"input__0": {"data": [0.0] * 8}},  # 8 == 2 * 2 * 2
     # }
-    # route_7 = respx.post(f"http://g5.xlarge:8001/v2/models/{model}/infer").mock(
+    # route_1 = respx.post(f"http://g5.xlarge:8001/v2/models/{model}/infer").mock(
     #     return_value=Response(200, json=dummy_model_metadata)
     # )
     # response = client.post(f"/models/infer", json=infer_schema)
-    # assert route_7.called
+    # assert route_1.called
     # assert response.status_code == 200
     # result = response.json()
-    # assert len(result) == 2
-    # if result[0]["name"] == "output__0":
-    #     assert result[1]["name"] == "output__1"
-    #     assert len(result[0]["data"]) == 1000
-    #     assert len(result[1]["data"]) == 1
-    # elif result[1]["name"] == "output__0":
-    #     assert result[0]["name"] == "output__1"
-    #     assert len(result[1]["data"]) == 1000
-    #     assert len(result[0]["data"]) == 1
-    # else:
-    #     assert False
+    # assert len(result) == 1
+    # assert "output__1" in result
+    # assert len(result["output__0"].data) == 5
 
 
 @pytest.fixture
 def add_model_schema() -> Dict[str, Any]:
     return {
-        "name": "<model_name>",
+        # FIXME: generalize this test
+        # NOTE: we assume we use the model from https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch
+        "name": "resnet50",
         "urls": {
             "g4dn.xlarge": "http://<address>:80/path/to/server",
             "g5.xlarge": "http://<address>:80/path/to/server",
@@ -151,6 +142,8 @@ def test_model_scenario_on_k8s(client, add_model_schema) -> None:  # type: ignor
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200
 
+    # FIXME: generalize this test
+    # NOTE: we assume we use the model from https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch
     infer_schema = {
         "target": add_model_schema["name"],
         "inputs": {"input__0": {"data": [0.0] * 3 * 224 * 224}},
