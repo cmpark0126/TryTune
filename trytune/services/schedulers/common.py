@@ -1,4 +1,4 @@
-import httpx
+import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
 import tritonclient.http.aio as httpclient
@@ -45,7 +45,8 @@ async def infer_with_triton(
         infer_input = httpclient.InferInput(name, shape, datatype)
 
         # FIXME: numpy array is not supported yet
-        infer_input.set_data_from_numpy(inputs[name].data, binary_data=False)
+        data = np.array(inputs[name].data)
+        infer_input.set_data_from_numpy(data, binary_data=False)
         infer_inputs.append(infer_input)
 
     for output_metadata in model_metadata["outputs"]:

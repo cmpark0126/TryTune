@@ -1,10 +1,10 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Any
 
 
 class DataSchema(BaseModel):
     name: str
-    data: List[int]
+    data: List[Any]
 
 
 class InferSchema(BaseModel):

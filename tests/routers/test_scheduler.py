@@ -18,7 +18,7 @@
 # @respx.mock
 # def test_set_scheduler():
 #     response = client.post(
-#         "/schedulers/set",
+#         "/scheduler/set",
 #         json=SetSchedulerSchema(name="test_scheduler", config={"param": "value"}).dict(),
 #     )
 #     assert response.status_code == 200
@@ -31,7 +31,7 @@
 
 # @respx.mock
 # def test_get_scheduler_metadata():
-#     response = client.get("/schedulers/metadata")
+#     response = client.get("/scheduler/metadata")
 #     assert response.status_code == 200
 #     # Here, you will need to replace this assertion with the actual expected metadata
 #     assert response.json() == {"expected_metadata_key": "expected_metadata_value"}
@@ -39,6 +39,6 @@
 
 # @respx.mock
 # def test_delete_scheduler():
-#     response = client.delete("/schedulers/delete")
+#     response = client.delete("/scheduler/delete")
 #     assert response.status_code == 200
 #     assert response.json() == {"message": "Scheduler deleted"}

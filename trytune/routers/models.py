@@ -34,7 +34,7 @@ def check_datatypes(data: dict) -> None:
 @router.get("/models/{model}/metadata")
 async def get_metadata(model: str) -> Any:
     try:
-        return models.get_metadata(model)["metadata"]
+        return models.get(model)["metadata"]
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
@@ -89,13 +89,13 @@ async def add_model(schema: model.AddModelSchema) -> Any:
         clents[instance_type] = triton_client
     assert len(clents) == len(schema.urls)
     metadata["urls"] = schema.urls
-    models.add(schema.name, {"clents": clents, "metadata": metadata})
+    models.set(schema.name, {"clents": clents, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata
 
 
-def validate_outs(outs: List[common.DataSchema]) -> None:
+def validate(outs: List[common.DataSchema]) -> None:
     # for out in outs:
     #     if out.name != schema.target:
     #         raise Exception(f"Output {out.name} does not match the target {schema.target}")
@@ -109,11 +109,16 @@ def validate_outs(outs: List[common.DataSchema]) -> None:
 
 
 @router.post("/models/infer")
-async def infer(model: str, schema: common.InferSchema) -> Any:
+async def infer(schema: common.InferSchema) -> Any:
     try:
-        _metadata = models.get_metadata(model)
+        _ = models.get(schema.target)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
+
+    try:
+        validate(schema.inputs)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     try:
         outs = await scheduler.infer(schema)
@@ -121,7 +126,7 @@ async def infer(model: str, schema: common.InferSchema) -> Any:
         raise HTTPException(status_code=400, detail=str(e))
 
     try:
-        validate_outs(outs)
+        validate(outs)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
