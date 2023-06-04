@@ -30,9 +30,9 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
         return metadata
 
 
-@router.post("/models/{model}/add")
-async def add_model(model: str, schema: model.AddModelSchema) -> Any:
-    if model in ModelRegistry.models:
+@router.post("/models/add")
+async def add_model(schema: model.AddModelSchema) -> Any:
+    if schema.name in ModelRegistry.models:
         raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
 
     # Send the request to the triton server to get model metadata
@@ -41,10 +41,10 @@ async def add_model(model: str, schema: model.AddModelSchema) -> Any:
 
     # Request to triton server to get model metadata
     urls = [url for _instance_type, url in schema.urls.items()]
-    metadata = await get_metadata_from_url(model, urls[0])
+    metadata = await get_metadata_from_url(schema.name, urls[0])
 
     for url in urls[1:]:
-        other = await get_metadata_from_url(model, url)
+        other = await get_metadata_from_url(schema.name, url)
         if metadata != other:
             raise HTTPException(
                 status_code=400,
@@ -52,7 +52,7 @@ async def add_model(model: str, schema: model.AddModelSchema) -> Any:
             )
 
     # add model to model registry
-    ModelRegistry.add(model, {"urls": schema.urls, "metadata": metadata})
+    ModelRegistry.add(schema.name, {"urls": schema.urls, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata

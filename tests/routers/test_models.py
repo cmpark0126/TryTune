@@ -53,7 +53,7 @@ def test_model_scenario(client) -> None:  # type: ignore
     assert response.status_code == 404
 
     # Add model with no urls
-    response = client.post(f"/models/{model}/add", json={"name": model, "urls": {}})
+    response = client.post(f"/models/add", json={"name": model, "urls": {}})
     assert response.status_code == 400
 
     # Mock the response from the triton server
@@ -64,7 +64,7 @@ def test_model_scenario(client) -> None:  # type: ignore
         return_value=Response(200, json=dummy_model_metadata_crashed)
     )
     # Add model with invalid urls
-    response = client.post(f"/models/{model}/add", json=model_add_schema)
+    response = client.post(f"/models/add", json=model_add_schema)
     assert route_1.called
     assert route_2.called
     assert response.status_code == 400
@@ -76,14 +76,14 @@ def test_model_scenario(client) -> None:  # type: ignore
     route_4 = respx.get(f"http://g5.xlarge:8001/v2/models/{model}").mock(
         return_value=Response(200, json=dummy_model_metadata)
     )
-    response = client.post(f"/models/{model}/add", json=model_add_schema_2)
+    response = client.post(f"/models/add", json=model_add_schema_2)
     assert route_3.called
     assert route_4.called
     assert response.status_code == 200
     assert response.json() == dummy_model_metadata
 
     # Add duplicate model
-    response = client.post(f"/models/{model}/add", json=model_add_schema)
+    response = client.post(f"/models/add", json=model_add_schema)
     assert response.status_code == 400
 
     # Get metadata
