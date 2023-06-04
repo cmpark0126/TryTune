@@ -3,6 +3,7 @@ from typing import Optional, Any, Dict, List
 from trytune.schemas.common import InferSchema, DataSchema
 from trytune.services.schedulers import fifo, common
 
+
 class Scheduler:
     def __init__(self) -> None:
         self.inner: Optional[common.SchedulerInner] = None
@@ -26,7 +27,7 @@ class Scheduler:
         self.inner = None
 
     # Return the output of the request as a list of DataSchema
-    async def infer(self, schema: InferSchema) -> List[DataSchema]:
+    async def infer(self, schema: InferSchema) -> Dict[str, common.DataSchema]:
         if self.inner is None:
             raise Exception("Scheduler inner is not set")
         return await self.inner.infer(schema)

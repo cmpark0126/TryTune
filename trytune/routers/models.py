@@ -1,5 +1,4 @@
 import httpx
-from urllib.parse import urlparse
 from fastapi import APIRouter, HTTPException
 from typing import Any, List, Dict
 import traceback
@@ -85,21 +84,14 @@ async def add_model(schema: model.AddModelSchema) -> Any:
             )
 
     # add model to model registry
-    clients: Dict[str, httpclient.InferenceServerClient] = {}
-    for instance_type, url in schema.urls.items():
-        url_wo_scheme = urlparse(url).netloc
-        # FIXME: use ssl to get security
-        triton_client = httpclient.InferenceServerClient(url=url_wo_scheme)
-        clients[instance_type] = triton_client
-    assert len(clients) == len(schema.urls)
     metadata["urls"] = schema.urls
-    models.set(schema.name, {"clients": clients, "metadata": metadata})
+    models.set(schema.name, {"metadata": metadata})
 
     # Return the response with the stored information
     return metadata
 
 
-def validate(outs: List[common.DataSchema]) -> None:
+def validate(outs: Dict[str, common.DataSchema]) -> None:
     # for out in outs:
     #     if out.name != schema.target:
     #         raise Exception(f"Output {out.name} does not match the target {schema.target}")

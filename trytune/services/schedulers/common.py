@@ -1,4 +1,5 @@
 import numpy as np
+from urllib.parse import urlparse
 from abc import ABC, abstractmethod
 from typing import Any, List, Dict
 import tritonclient.http.aio as httpclient
@@ -7,7 +8,7 @@ from trytune.schemas.common import InferSchema, DataSchema
 
 class SchedulerInner(ABC):
     @abstractmethod
-    async def infer(self, schema: InferSchema) -> List[DataSchema]:
+    async def infer(self, schema: InferSchema) -> Dict[str, DataSchema]:
         raise NotImplementedError("infer is not implemented")
 
     @abstractmethod
@@ -23,11 +24,18 @@ class SchedulerInner(ABC):
         raise NotImplementedError("infer is not implemented")
 
 
+def get_numpy_dtype(datatype: str) -> Any:
+    if datatype == "FP32":
+        return np.float32
+    else:
+        raise NotImplementedError(f"datatype {datatype} is not supported")
+
+
 async def infer_with_triton(
-    triton_client: httpclient.InferenceServerClient,
+    url: str,
     model_metadata: Dict[str, Any],
-    inputs: List[DataSchema],
-) -> List[DataSchema]:
+    inputs: Dict[str, DataSchema],
+) -> Dict[str, DataSchema]:
     """
     Request to triton server to infer the model with the given inputs.
 
@@ -45,8 +53,9 @@ async def infer_with_triton(
         infer_input = httpclient.InferInput(name, shape, datatype)
 
         # FIXME: numpy array is not supported yet
-        data = np.array(inputs[name].data)
-        infer_input.set_data_from_numpy(data, binary_data=False)
+        # FIXME: various datatype in the future
+        data = np.array(inputs[name].data, dtype=get_numpy_dtype(datatype)).reshape(shape)
+        infer_input.set_data_from_numpy(data, binary_data=True)
         infer_inputs.append(infer_input)
 
     for output_metadata in model_metadata["outputs"]:
@@ -54,15 +63,19 @@ async def infer_with_triton(
         infer_requested_output = httpclient.InferRequestedOutput(name, binary_data=True)
         infer_requested_outputs.append(infer_requested_output)
 
+    # FIXME: use ssl to get security
+    parsed_url = urlparse(url)
+    triton_client = httpclient.InferenceServerClient(url=parsed_url.netloc + parsed_url.path)
     result = await triton_client.infer(
         model_metadata["name"],
-        infer_inputs,
+        inputs=infer_inputs,
         outputs=infer_requested_outputs,
     )
 
-    print(result.get_output(output_metadata["name"]))
+    outputs: Dict[str, DataSchema] = {}
+    for output_metadata in model_metadata["outputs"]:
+        name = output_metadata["name"]
+        output = result.as_numpy(name).tolist()
+        outputs[name] = DataSchema(data=output)
 
-    return [
-        DataSchema(name="output__0", data=[0.0] * 1000),
-        DataSchema(name="output__1", data=[0.0]),
-    ]
+    return outputs

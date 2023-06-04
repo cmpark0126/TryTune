@@ -1,9 +1,8 @@
 from pydantic import BaseModel
-from typing import List, Any
+from typing import List, Any, Dict
 
 
 class DataSchema(BaseModel):
-    name: str
     data: List[Any]
 
 
@@ -19,12 +18,12 @@ class InferSchema(BaseModel):
         {
             "target": "pipe1",
             "inputs": [
-                {"name": "i1", "data": [1.0, 2.0, 3.0]},
-                {"name": "i2", "data": [1.0, 2.0, 3.0]},
+                "i1": {"data": [1.0, 2.0, 3.0]},
+                "i2": {"data": [1.0, 2.0, 3.0]},
             ]
         }
     """
 
     target: str
     # TODO: add target type enum pipeline/model
-    inputs: List[DataSchema]
+    inputs: Dict[str, DataSchema]
