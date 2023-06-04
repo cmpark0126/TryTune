@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from typing import Any
 from trytune.schemas.scheduler import SetSchedulerSchema
-from trytune.services.scheduler import Scheduler
+from trytune.services.scheduler import scheduler
 
 router = APIRouter()
-scheduler = Scheduler()
 
 
 @router.post("/scheduler/set")

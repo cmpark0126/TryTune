@@ -3,7 +3,6 @@ from typing import Optional, Any, Dict, List
 from trytune.schemas.common import InferSchema, DataSchema
 from trytune.services.schedulers import fifo, common
 
-# FIXME: Avoid using singleton pattern
 class Scheduler:
     def __init__(self) -> None:
         self.inner: Optional[common.SchedulerInner] = None
@@ -31,3 +30,7 @@ class Scheduler:
         if self.inner is None:
             raise Exception("Scheduler inner is not set")
         return await self.inner.infer(schema)
+
+
+# FIXME: Avoid using singleton pattern
+scheduler = Scheduler()

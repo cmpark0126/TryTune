@@ -4,12 +4,11 @@ from fastapi import APIRouter, HTTPException
 from typing import Any, List, Dict
 import tritonclient.http.aio as httpclient
 from trytune.schemas import common, model
-from trytune.services.models import Models
-from trytune.routers.scheduler import scheduler
+from trytune.services.models import models
+from trytune.services.scheduler import scheduler
 
 
 router = APIRouter()
-models = Models()
 
 DATATYPES = [
     "FP32"

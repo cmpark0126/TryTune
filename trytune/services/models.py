@@ -2,8 +2,6 @@ from typing import Any, Dict
 
 
 # Class to store model metadatas and links to triton servers.
-# FIXME: Avoid using singleton pattern and class variables.
-# FIXME: This version of class is not thread-safe.
 class Models:
     def __init__(self) -> None:
         self.models: Dict[str, Dict[str, Any]] = {}
@@ -14,3 +12,8 @@ class Models:
 
     def get(self, model: str) -> Dict[str, Any]:
         return self.models[model]
+
+
+# FIXME: Avoid using singleton pattern and class variables.
+# FIXME: This version of class is not thread-safe.
+models = Models()
