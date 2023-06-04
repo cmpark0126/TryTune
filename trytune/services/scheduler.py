@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict, List
 from trytune.schemas.common import InferSchema, DataSchema
-from trytune.services.schedulers import SchedulerInner
-from trytune.services.schedulers import fifo
+from trytune.services.schedulers import fifo, common
 
 # FIXME: Avoid using singleton pattern
 class Scheduler:
     def __init__(self) -> None:
-        self.inner: Optional[SchedulerInner] = None
+        self.inner: Optional[common.SchedulerInner] = None
 
     async def set_inner(self, scheduler: str, config: Dict[str, Any]) -> None:
         if scheduler == "fifo":

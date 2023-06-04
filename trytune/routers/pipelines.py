@@ -20,7 +20,7 @@ async def get_metadata(pipeline: str) -> Any:
 # TODO: during add, we need to check all tensors and modules are valid
 
 
-@router.post("/pipelines/{pipeline}/infer")
-async def infer(pipeline: str, infer: common.InferSchema) -> Any:
-    print(f"Received request for model {pipeline} with data: {infer}")
+@router.post("/pipelines/infer")
+async def infer(infer: common.InferSchema) -> Any:
+    print(f"Received request for model {infer.target} with data: {infer.inputs}")
     return infer
