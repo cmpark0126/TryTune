@@ -102,13 +102,13 @@ def test_model_scenario(client) -> None:  # type: ignore
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200
 
-    # TODO: test using mock server
+    # TODO: test inferencing using mock server in the future
     # infer_schema = {
     #     "target": model,
     #     "inputs": {"input__0": {"data": [0.0] * 8}},  # 8 == 2 * 2 * 2
     # }
-    # route_1 = respx.post(f"http://g5.xlarge:8001/v2/models/{model}/infer").mock(
-    #     return_value=Response(200, json=dummy_model_metadata)
+    # route_1 = respx.post(f"http://g4dn.xlarge:8001/v2/models/{model}/infer").mock(
+    #     return_value=Response(200, json=dummy_result)
     # )
     # response = client.post(f"/models/infer", json=infer_schema)
     # assert route_1.called
