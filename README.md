@@ -2,7 +2,7 @@
 
 Heterogeneous System Model Pipeline Scheduling Framework with Triton Inference Server as Backend
 
-# Install & Run
+## Install & Run
 ```bash
 $ git clone https://github.com/cmpark0126/trytune-py
 $ cd trytune-py
@@ -12,7 +12,7 @@ $ python -m pip install . # install trytune
 $ uvicorn fastapi.main:app --host 0.0.0.0 --port 80 --log-level trace # --reload if necessary
 ```
 
-# Test
+## Test
 If you want to test basic functions of this framework, please use below:
 ```bash
 $ python -m pytest -s -v -k "not k8s" # run with mock
@@ -37,9 +37,3 @@ collected 6 items / 5 deselected / 1 selected
 tests/routers/test_models.py::test_model_scenario_on_k8s PASSED
 ```
 
-
-# Plan
-* Add logger
-* Add various backend (e.g., torchserve, tfserving)
-* Add licence
-* Add documentation
