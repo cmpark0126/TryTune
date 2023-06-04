@@ -27,10 +27,10 @@ class AddModelSchema(BaseModel):
         {
             "name": "resnet50",
             "inputs": [
-                {"name": "input__0", "dtype": "FP32", "shape": [3, 224, 224]}
+                {"name": "input__0", "datatype": "FP32", "shape": [3, 224, 224]}
             ],
             "outputs": [
-                {"name": "output__0", "dtype": "FP32", "shape": [1000]}
+                {"name": "output__0", "datatype": "FP32", "shape": [1000]}
             ],
         }
 

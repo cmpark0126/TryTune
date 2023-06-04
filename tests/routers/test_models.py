@@ -33,12 +33,20 @@ def test_model_scenario(client) -> None:  # type: ignore
             {"name": "i2", "data": [4, 5, 6]},
         ],
     }
-    dummy_model_metadata = {
+    dummy_model_invalid_datatype = {
         "name": model,
         "inputs": [{"name": "input__0", "datatype": "FP32", "shape": [3, 224, 224]}],
         "outputs": [
             {"name": "output__0", "datatype": "FP32", "shape": [1000]},
             {"name": "output__1", "datatype": "INT32", "shape": [1]},
+        ],
+    }
+    dummy_model_metadata = {
+        "name": model,
+        "inputs": [{"name": "input__0", "datatype": "FP32", "shape": [3, 224, 224]}],
+        "outputs": [
+            {"name": "output__0", "datatype": "FP32", "shape": [1000]},
+            {"name": "output__1", "datatype": "FP32", "shape": [1]},
         ],
     }
     dummy_model_metadata_crashed = {
@@ -58,27 +66,37 @@ def test_model_scenario(client) -> None:  # type: ignore
 
     # Mock the response from the triton server
     route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/models/{model}").mock(
-        return_value=Response(200, json=dummy_model_metadata)
-    )
-    route_2 = respx.get(f"http://g5.xlarge:8000/v2/models/{model}").mock(
-        return_value=Response(200, json=dummy_model_metadata_crashed)
+        return_value=Response(200, json=dummy_model_invalid_datatype)
     )
     # Add model with invalid urls
     response = client.post(f"/models/add", json=model_add_schema)
     assert route_1.called
-    assert route_2.called
+    assert response.status_code == 400
+    assert b"Unsupported datatype" in response.content
+
+    # Mock the response from the triton server
+    route_3 = respx.get(f"http://g4dn.xlarge:8000/v2/models/{model}").mock(
+        return_value=Response(200, json=dummy_model_metadata)
+    )
+    route_4 = respx.get(f"http://g5.xlarge:8000/v2/models/{model}").mock(
+        return_value=Response(200, json=dummy_model_metadata_crashed)
+    )
+    # Add model with invalid urls
+    response = client.post(f"/models/add", json=model_add_schema)
+    assert route_3.called
+    assert route_4.called
     assert response.status_code == 400
 
     # Mock the response from the triton server
-    route_3 = respx.get(f"http://g4dn.xlarge:8001/v2/models/{model}").mock(
+    route_5 = respx.get(f"http://g4dn.xlarge:8001/v2/models/{model}").mock(
         return_value=Response(200, json=dummy_model_metadata)
     )
-    route_4 = respx.get(f"http://g5.xlarge:8001/v2/models/{model}").mock(
+    route_6 = respx.get(f"http://g5.xlarge:8001/v2/models/{model}").mock(
         return_value=Response(200, json=dummy_model_metadata)
     )
     response = client.post(f"/models/add", json=model_add_schema_2)
-    assert route_3.called
-    assert route_4.called
+    assert route_5.called
+    assert route_6.called
     assert response.status_code == 200
     dummy_model_metadata["urls"] = model_add_schema_2["urls"]  # type: ignore
     obtained_metadata = response.json()

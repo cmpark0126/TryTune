@@ -11,6 +11,25 @@ from trytune.routers.scheduler import scheduler
 router = APIRouter()
 models = Models()
 
+DATATYPES = [
+    "FP32"
+]  # "FP16", "FP32", "FP64", "INT8", "INT16", "INT32", "INT64", "BOOL" are not supported yet
+
+
+def check_datatypes(data: dict) -> None:
+    inputs = data.get("inputs", [])
+    outputs = data.get("outputs", [])
+
+    for input_data in inputs:
+        datatype = input_data.get("datatype")
+        if datatype not in DATATYPES:
+            raise Exception(f"Unsupported datatype {datatype}")
+
+    for output_data in outputs:
+        datatype = output_data.get("datatype")
+        if datatype not in DATATYPES:
+            raise Exception(f"Unsupported datatype {datatype}")
+
 
 @router.get("/models/{model}/metadata")
 async def get_metadata(model: str) -> Any:
@@ -45,6 +64,7 @@ async def add_model(schema: model.AddModelSchema) -> Any:
     urls = [url for _instance_type, url in schema.urls.items()]
     try:
         metadata = await get_metadata_from_url(schema.name, urls[0])
+        check_datatypes(metadata)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -83,8 +103,8 @@ def validate_outs(outs: List[common.DataSchema]) -> None:
     #     if out.shape != schema.shape:
     #         raise Exception(f"Output {out.shape} does not match the target {schema.shape}")
 
-    #     if out.dtype != schema.dtype:
-    #         raise Exception(f"Output {out.dtype} does not match the target {schema.dtype}")
+    #     if out.datatype != schema.datatype:
+    #         raise Exception(f"Output {out.datatype} does not match the target {schema.datatype}")
     pass
 
 
