@@ -2,17 +2,17 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from typing import Any
 from trytune.schemas import common, model
-from trytune.services.model_registry import ModelRegistry
+from trytune.services.models import Models
 
 
 router = APIRouter()
-model_registry = ModelRegistry()
+models = Models()
 
 
 @router.get("/models/{model}/metadata")
 async def get_metadata(model: str) -> Any:
     try:
-        return model_registry.get_metadata(model)
+        return models.get_metadata(model)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
@@ -33,7 +33,7 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
 
 @router.post("/models/add")
 async def add_model(schema: model.AddModelSchema) -> Any:
-    if schema.name in model_registry.models:
+    if schema.name in models.models:
         raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
 
     # Send the request to the triton server to get model metadata
@@ -53,7 +53,7 @@ async def add_model(schema: model.AddModelSchema) -> Any:
             )
 
     # add model to model registry
-    model_registry.add(schema.name, {"urls": schema.urls, "metadata": metadata})
+    models.add(schema.name, {"urls": schema.urls, "metadata": metadata})
 
     # Return the response with the stored information
     return metadata
@@ -68,7 +68,7 @@ async def infer(model: str, schema: common.InferSchema) -> Any:
         )
 
     try:
-        _metadata = model_registry.get_metadata(model)
+        _metadata = models.get_metadata(model)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Model {model} not found.")
 
