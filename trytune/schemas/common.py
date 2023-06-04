@@ -26,4 +26,5 @@ class InferSchema(BaseModel):
     """
 
     target: str
+    # TODO: add target type enum pipeline/model
     inputs: List[DataSchema]
