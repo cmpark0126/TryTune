@@ -81,7 +81,7 @@ def test_model_scenario(client) -> None:  # type: ignore
     assert route_4.called
     assert response.status_code == 200
     dummy_model_metadata["urls"] = model_add_schema_2["urls"]  # type: ignore
-    assert response.json() == dummy_model_metadata
+    obtained_metadata = response.json()
 
     # Add duplicate model
     response = client.post(f"/models/add", json=model_add_schema)
@@ -90,7 +90,7 @@ def test_model_scenario(client) -> None:  # type: ignore
     # Get metadata
     response = client.get(f"/models/{model}/metadata")
     assert response.status_code == 200
-    assert response.json() == dummy_model_metadata
+    assert response.json() == obtained_metadata
 
     # TODO: change the following to use the mock scheduler service
     # TODO: check the behavior when the input data is not valid

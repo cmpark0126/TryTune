@@ -23,26 +23,32 @@ class SchedulerInner(ABC):
         raise NotImplementedError("infer is not implemented")
 
 
-# # TODO: generalize input format
-# async def infer_with_triton(clents: httpclient.InferenceServerClient, inputs: []) -> Any:
-#     inputs = []
-#     outputs = []
-#     inputs.append(httpclient.InferInput("INPUT0", [1, 16], "INT32"))
-#     inputs.append(httpclient.InferInput("INPUT1", [1, 16], "INT32"))
+async def infer_with_triton(
+    triton_client: httpclient.InferenceServerClient,
+    model_metadata: Dict[str, Any],
+    inputs: List[DataSchema],
+) -> Any:
+    infer_inputs: List[httpclient.InferInput] = []
+    infer_requested_outputs: List[httpclient.InferRequestedOutput] = []
 
-#     # Initialize the data
-#     inputs[0].set_data_from_numpy(input0_data, binary_data=False)
-#     inputs[1].set_data_from_numpy(input1_data, binary_data=True)
+    for input_metadata in model_metadata["inputs"]:
+        name = input_metadata["name"]
+        shape = input_metadata["shape"]
+        datatype = input_metadata["datatype"]
 
-#     outputs.append(httpclient.InferRequestedOutput("OUTPUT0", binary_data=True))
-#     outputs.append(httpclient.InferRequestedOutput("OUTPUT1", binary_data=False))
-#     query_params = {"test_1": 1, "test_2": 2}
-#     results = await triton_client.infer(
-#         model_name,
-#         inputs,
-#         outputs=outputs,
-#         query_params=query_params,
-#         headers=headers,
-#         request_compression_algorithm=request_compression_algorithm,
-#         response_compression_algorithm=response_compression_algorithm,
-#     )
+        infer_input = httpclient.InferInput(name, shape, datatype)
+
+        # FIXME: numpy array is not supported yet
+        infer_input.set_data_from_numpy(inputs[name].data, binary_data=False)
+        infer_inputs.append(infer_input)
+
+    for output_metadata in model_metadata["outputs"]:
+        name = output_metadata["name"]
+        infer_requested_output = httpclient.InferRequestedOutput(name, binary_data=True)
+        infer_requested_outputs.append(infer_requested_output)
+
+    return await triton_client.infer(
+        model_metadata["name"],
+        infer_inputs,
+        outputs=infer_requested_outputs,
+    )
