@@ -84,9 +84,8 @@ def test_module_scenario(client) -> None:  # type: ignore
     assert response.json() == obtained_metadata
 
     response = client.get(f"/modules/list")
-    print(response.content)
     assert response.status_code == 200, response.content
-    print(response.json())
+    assert response.json() == {module: obtained_metadata}
 
     # Set scheduler
     scheduler_schema = {"name": "fifo", "config": {}}
