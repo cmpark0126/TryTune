@@ -4,6 +4,7 @@ from typing import Any, Dict
 import numpy as np
 import torch
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
+
 import triton_python_backend_utils as pb_utils  # type: ignore
 
 
@@ -33,11 +34,10 @@ class TritonPythonModel:
         # and create a pb_utils.InferenceResponse for each of them.
         for request in requests:
             batch_image = torch.from_numpy(
-                pb_utils.get_input_tensor_by_name(request, "BATCh_IMAGE").as_numpy()
+                pb_utils.get_input_tensor_by_name(request, "BATCH_IMAGE").as_numpy()
             )
 
             # NOTE: batch_image must be B x C x H x W shapes
-            print(batch_image.shape)
             preds = self.model(batch_image)
             # preds: [{"boxes": <torch.Size([41, 4])>, "labels": torch.Size([41]), "scores": torch.Size([41])}, ...]
             batch_boxes = []
@@ -331,17 +331,18 @@ class TritonPythonModel:
 #     img = transform(img_pil)
 #     # Since we only have one image, we need to add a batch dimension
 #     batch_img = img.unsqueeze(0)
-#     tensor = pb_utils.Tensor("BATCh_IMAGE", batch_img.numpy())
+#     print("inputs: ", batch_img.shape)
+#     tensor = pb_utils.Tensor("BATCH_IMAGE", batch_img.numpy())
 #     request = {"inputs": [tensor]}
 #     response = tmp.execute([request])[0]
 
 #     # Validate the output tensor. We only have single batch here
 #     boxes = response.get_output_tensor_by_name("BOXES").as_numpy()[0]
-#     print(boxes.shape)
+#     print("boxes: ", boxes.shape)
 #     labels = response.get_output_tensor_by_name("LABELS").as_numpy()[0]
-#     print(labels.shape)
+#     print("labels: ", labels.shape)
 #     scores = response.get_output_tensor_by_name("SCORES").as_numpy()[0]
-#     print(scores.shape)
+#     print("scores: ", scores.shape)
 
 #     # We only keep the boxes with scores >= 0.9
 #     threshold = 0.9
