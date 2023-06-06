@@ -97,6 +97,8 @@ class TritonPythonModel:
 # ) -> Any:
 #     if triton_dtype == "FP32":
 #         return np.float32
+#     elif triton_dtype == "INT32":
+#         return np.int32
 #     else:
 #         raise ValueError(f"Unknown Triton dtype {triton_dtype}")
 
@@ -266,13 +268,13 @@ class TritonPythonModel:
 #             pt1=(x_min, y_min),
 #             pt2=(x_max, y_max),
 #             # FIXME: we should use int type here in the future
-#             color=color_array[int(labels[j])],
+#             color=color_array[labels[j]],
 #             thickness=2,
 #         )
 
 #         # text_size
 #         text_size = cv2.getTextSize(
-#             text=label_list[int(labels[j])] + " {:.2f}".format(scores[j].item()),
+#             text=label_list[labels[j]] + " {:.2f}".format(scores[j].item()),
 #             fontFace=cv2.FONT_HERSHEY_PLAIN,
 #             fontScale=1,
 #             thickness=1,
@@ -283,14 +285,14 @@ class TritonPythonModel:
 #             im_show,
 #             pt1=(x_min, y_min),
 #             pt2=(x_min + text_size[0] + 3, y_min + text_size[1] + 4),
-#             color=color_array[int(labels[j])],
+#             color=color_array[labels[j]],
 #             thickness=-1,
 #         )
 
 #         # put text
 #         cv2.putText(
 #             im_show,
-#             text=label_list[int(labels[j])] + " {:.2f}".format(scores[j].item()),
+#             text=label_list[labels[j]] + " {:.2f}".format(scores[j].item()),
 #             org=(x_min + 10, y_min + 10),  # must be int
 #             fontFace=0,
 #             fontScale=0.4,
@@ -322,7 +324,7 @@ class TritonPythonModel:
 
 #     # Initialize the model
 #     # FIXME: we should use int type for labels in the future
-#     json_data = '{"outputs": [{"name": "BOXES", "data_type": "FP32"},{"name": "LABELS", "data_type": "FP32"},{"name": "SCORES", "data_type": "FP32"}]}'
+#     json_data = '{"outputs": [{"name": "BOXES", "data_type": "FP32"},{"name": "LABELS", "data_type": "INT32"},{"name": "SCORES", "data_type": "FP32"}]}'
 #     tmp.initialize({"model_config": json_data})
 
 #     # We only has one request and response here
