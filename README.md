@@ -1,6 +1,6 @@
 # TryTune
 
-Heterogeneous System Model Pipeline Scheduling Framework with Triton Inference Server as Backend
+Heterogeneous System ML Pipeline Scheduling Framework with Triton Inference Server as Backend
 
 ## Install & Run
 ```bash
@@ -17,11 +17,12 @@ If you want to test basic functions of this framework, please use below:
 ```bash
 $ python -m pytest -s -v -k "not k8s" # run with mock
 ...
-collected 6 items / 1 deselected / 5 selected
+collected 7 items / 1 deselected / 6 selected
 
-tests/routers/test_models.py::test_model_scenario PASSED
+tests/routers/test_module.py::test_module_scenario PASSED
+tests/routers/test_scheduler.py::test_scheduler_scenario PASSED
 tests/schemas/test_common.py::test_infer_schema PASSED
-tests/schemas/test_model.py::test_add_model_schema PASSED
+tests/schemas/test_module.py::test_add_module_schema PASSED
 tests/schemas/test_pipeline.py::test_pipeline_add_schema PASSED
 tests/schemas/test_scheduler.py::test_set_scheduler_schema PASSED
 ```
@@ -29,11 +30,11 @@ tests/schemas/test_scheduler.py::test_set_scheduler_schema PASSED
 If you want to test real triton server behavior, please follow below:
 ```bash
 $ kubectl get ingress # To check ingress address (without http maybe)
-$ vi tests/routers/conftest.py # modify add_model_schema function with appropriate value
+$ vi tests/routers/conftest.py # modify add_module_schema function with appropriate value
 $ python -m pytest -s -v -k "k8s"
 ...
 collected 6 items / 5 deselected / 1 selected
 
-tests/routers/test_models.py::test_model_scenario_on_k8s PASSED
+tests/routers/test_modules.py::test_module_scenario_on_k8s PASSED
 ```
 

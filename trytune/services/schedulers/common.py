@@ -33,11 +33,11 @@ def get_numpy_dtype(datatype: str) -> Any:
 
 async def infer_with_triton(
     url: str,
-    model_metadata: Dict[str, Any],
+    module_metadata: Dict[str, Any],
     inputs: Dict[str, DataSchema],
 ) -> Dict[str, DataSchema]:
     """
-    Request to triton server to infer the model with the given inputs.
+    Request to triton server to infer the module with the given inputs.
 
     References:
         https://github.com/triton-inference-server/client/blob/main/src/python/examples/simple_http_aio_infer_client.py
@@ -45,7 +45,7 @@ async def infer_with_triton(
     infer_inputs: List[httpclient.InferInput] = []
     infer_requested_outputs: List[httpclient.InferRequestedOutput] = []
 
-    for input_metadata in model_metadata["inputs"]:
+    for input_metadata in module_metadata["inputs"]:
         name = input_metadata["name"]
         shape = input_metadata["shape"]
         datatype = input_metadata["datatype"]
@@ -58,7 +58,7 @@ async def infer_with_triton(
         infer_input.set_data_from_numpy(data, binary_data=True)
         infer_inputs.append(infer_input)
 
-    for output_metadata in model_metadata["outputs"]:
+    for output_metadata in module_metadata["outputs"]:
         name = output_metadata["name"]
         infer_requested_output = httpclient.InferRequestedOutput(name, binary_data=True)
         infer_requested_outputs.append(infer_requested_output)
@@ -67,13 +67,13 @@ async def infer_with_triton(
     parsed_url = urlparse(url)
     triton_client = httpclient.InferenceServerClient(url=parsed_url.netloc + parsed_url.path)
     result = await triton_client.infer(
-        model_metadata["name"],
+        module_metadata["name"],
         inputs=infer_inputs,
         outputs=infer_requested_outputs,
     )
 
     outputs: Dict[str, DataSchema] = {}
-    for output_metadata in model_metadata["outputs"]:
+    for output_metadata in module_metadata["outputs"]:
         name = output_metadata["name"]
         output = result.as_numpy(name).tolist()
         outputs[name] = DataSchema(data=output)

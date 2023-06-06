@@ -3,8 +3,8 @@ from fastapi import APIRouter, HTTPException
 from typing import Any, List, Dict
 import traceback
 import tritonclient.http.aio as httpclient
-from trytune.schemas import common, model
-from trytune.services.models import models
+from trytune.schemas import common, module
+from trytune.services.modules import modules
 from trytune.services.scheduler import scheduler
 
 
@@ -30,18 +30,18 @@ def check_datatypes(data: dict) -> None:
             raise Exception(f"Unsupported datatype {datatype}")
 
 
-@router.get("/models/{model}/metadata")
-async def get_metadata(model: str) -> Any:
+@router.get("/modules/{module}/metadata")
+async def get_metadata(module: str) -> Any:
     try:
-        return models.get(model)["metadata"]
+        return modules.get(module)["metadata"]
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Model {model} not found.")
+        raise HTTPException(status_code=404, detail=f"Model {module} not found.")
 
 
 # FIXME: we plan to use tritonclient.http.aio in the future
-async def get_metadata_from_url(model: str, url: str) -> Any:
+async def get_metadata_from_url(module: str, url: str) -> Any:
     async with httpx.AsyncClient() as client:
-        tgt_url = url + f"/v2/models/{model}"
+        tgt_url = url + f"/v2/modules/{module}"
         response = await client.get(tgt_url)
 
         if response.status_code != 200:
@@ -50,16 +50,16 @@ async def get_metadata_from_url(model: str, url: str) -> Any:
         return metadata
 
 
-@router.post("/models/add")
-async def add_model(schema: model.AddModelSchema) -> Any:
-    if schema.name in models.models:
-        raise HTTPException(status_code=400, detail=f"Model {model} already exists.")
+@router.post("/modules/add")
+async def add_module(schema: module.AddModuleSchema) -> Any:
+    if schema.name in modules.modules:
+        raise HTTPException(status_code=400, detail=f"Model {module} already exists.")
 
-    # Send the request to the triton server to get model metadata
+    # Send the request to the triton server to get module metadata
     if len(schema.urls) == 0:
         raise HTTPException(status_code=400, detail="No links provided.")
 
-    # Request to triton server to get model metadata
+    # Request to triton server to get module metadata
     urls = [url for _instance_type, url in schema.urls.items()]
     try:
         metadata = await get_metadata_from_url(schema.name, urls[0])
@@ -83,9 +83,9 @@ async def add_model(schema: model.AddModelSchema) -> Any:
                 detail=f"Model metadata mismatch: {urls[0]}'s {metadata}, {url}'s {other}",
             )
 
-    # add model to model registry
+    # add module to module registry
     metadata["urls"] = schema.urls
-    models.set(schema.name, {"metadata": metadata})
+    modules.set(schema.name, {"metadata": metadata})
 
     # Return the response with the stored information
     return metadata
@@ -104,12 +104,12 @@ def validate(outs: Dict[str, common.DataSchema]) -> None:
     pass
 
 
-@router.post("/models/infer")
+@router.post("/modules/infer")
 async def infer(schema: common.InferSchema) -> Any:
     try:
-        _ = models.get(schema.target)
+        _ = modules.get(schema.target)
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Model {model} not found.")
+        raise HTTPException(status_code=404, detail=f"Model {module} not found.")
 
     try:
         validate(schema.inputs)

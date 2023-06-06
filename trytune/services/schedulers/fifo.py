@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 import tritonclient.http.aio as httpclient
 from trytune.schemas.common import InferSchema, DataSchema
 import trytune.services.schedulers.common as common
-from trytune.services.models import models
+from trytune.services.modules import modules
 
 
 class FifoScheduler(common.SchedulerInner):
@@ -18,10 +18,10 @@ class FifoScheduler(common.SchedulerInner):
         pass
 
     async def infer(self, schema: InferSchema) -> Dict[str, common.DataSchema]:
-        model = models.get(schema.target)
+        module = modules.get(schema.target)
 
-        metadata = model["metadata"]
-        urls = model["metadata"]["urls"]
+        metadata = module["metadata"]
+        urls = module["metadata"]["urls"]
         assert len(urls) > 0
         instance_types = [instance_type for instance_type, _ in urls.items()]
         # TODO: use round robin to schedule the requests

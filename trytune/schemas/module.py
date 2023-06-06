@@ -2,15 +2,15 @@ from pydantic import BaseModel
 from typing import Dict
 
 
-class AddModelSchema(BaseModel):
+class AddModuleSchema(BaseModel):
     """
-    Schema for adding model.
+    Schema for adding module.
 
     Attributes:
         urls (dict): A dictionary of triton server urls for each instance type.
 
     Example:
-        If user sends a request to add a model with the following information:
+        If user sends a request to add a module with the following information:
         {
             "name": "resnet50",
             "urls": {
@@ -20,9 +20,9 @@ class AddModelSchema(BaseModel):
                 ...
             }
         }
-        FYI, all urls are linked to the triton servers serving same model but run on different instance types
+        FYI, all urls are linked to the triton servers serving same module but run on different instance types
 
-        Then the model registry will store the following information
+        Then the module registry will store the following information
         obtained from the triton server:
         {
             "name": "resnet50",

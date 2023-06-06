@@ -8,7 +8,7 @@ class DataSchema(BaseModel):
 
 class InferSchema(BaseModel):
     """
-    Data to be used for target program(pipeline or model) inference.
+    Data to be used for target program(pipeline or module) inference.
 
     Attributes:
         target (str): The name of the target program.
@@ -25,5 +25,5 @@ class InferSchema(BaseModel):
     """
 
     target: str
-    # TODO: add target type enum pipeline/model
+    # TODO: add target type enum pipeline/module
     inputs: Dict[str, DataSchema]

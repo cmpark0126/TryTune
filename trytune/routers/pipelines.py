@@ -12,7 +12,7 @@ async def get_metadata(pipeline: str) -> Any:
         "inputs": [],
         "outputs": [],
         "tensors": [],
-        "models": [],
+        "modules": [],
     }
     return dummy
 
@@ -22,5 +22,5 @@ async def get_metadata(pipeline: str) -> Any:
 
 @router.post("/pipelines/infer")
 async def infer(infer: common.InferSchema) -> Any:
-    print(f"Received request for model {infer.target} with data: {infer.inputs}")
+    print(f"Received request for pipeline {infer.target} with data: {infer.inputs}")
     return infer

@@ -16,13 +16,13 @@ def test_pipeline_add_schema() -> None:
         "stages": [
             {
                 "name": "classifier",
-                "model": "resnet50",
+                "module": "resnet50",
                 "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
                 "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
             },
             {
                 "name": "selector",
-                "model": "top_five",
+                "module": "top_five",
                 "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
                 "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
             },
@@ -45,7 +45,7 @@ def test_pipeline_add_schema() -> None:
     assert add_pipeline.tensors.interms[0].name == "pinterm__0"
     assert len(add_pipeline.stages) == 2
     assert add_pipeline.stages[0].name == "classifier"
-    assert add_pipeline.stages[0].model == "resnet50"
+    assert add_pipeline.stages[0].module == "resnet50"
     assert len(add_pipeline.stages[0].inputs) == 1
     assert add_pipeline.stages[0].inputs[0].src == "input__0"
     assert add_pipeline.stages[0].inputs[0].tgt == "pinput__0"
@@ -64,14 +64,14 @@ def test_pipeline_add_schema() -> None:
         "stages": [
             {
                 "name": "classifier",
-                "model": "resnet50",
+                "module": "resnet50",
                 # invalid field
                 "inputs": [{"src": "input__0"}],
                 "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
             },
             {
                 "name": "selector",
-                "model": "top_five",
+                "module": "top_five",
                 "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
                 "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
             },
@@ -93,13 +93,13 @@ def test_pipeline_add_schema() -> None:
         "stages": [
             {
                 "name": "classifier",
-                "model": "resnet50",
+                "module": "resnet50",
                 "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
                 "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
             },
             {
                 "name": "selector",
-                "model": "top_five",
+                "module": "top_five",
                 "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
                 "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
             },

@@ -19,7 +19,7 @@ class StageIO(BaseModel):
 
 class StageSchema(BaseModel):
     name: str
-    model: str
+    module: str
     inputs: List[StageIO]
     outputs: List[StageIO]
 
@@ -31,7 +31,7 @@ class AddPipelineSchema(BaseModel):
     Attributes:
         name (str): The name of the pipeline.
         tensors (dict): Dictionary containing input and output tensors information.
-        models (list): List of model information.
+        modules (list): List of module information.
 
     Example:
         {
@@ -46,13 +46,13 @@ class AddPipelineSchema(BaseModel):
             "stages": [
                 {
                     "name": "classifier",
-                    "model": "resnet50",
+                    "module": "resnet50",
                     "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
                     "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
                 },
                 {
                     "name": "selector",
-                    "model": "top_five",
+                    "module": "top_five",
                     "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
                     "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
                 },
