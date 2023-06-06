@@ -33,8 +33,7 @@ $ kubectl get ingress # To check ingress address (without http maybe)
 $ vi tests/routers/conftest.py # modify add_module_schema function with appropriate value
 $ python -m pytest -s -v -k "k8s"
 ...
-collected 6 items / 5 deselected / 1 selected
+collected 7 items / 6 deselected / 1 selected 
 
-tests/routers/test_modules.py::test_module_scenario_on_k8s PASSED
+tests/routers/test_module.py::test_module_scenario_on_k8s PASSED
 ```
-

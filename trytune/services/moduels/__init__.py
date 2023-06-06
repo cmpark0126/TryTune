@@ -45,6 +45,11 @@ class Modules:
     def get(self, module: str) -> Dict[str, Any]:
         return self.modules[module]
 
+    # Return all builtin modules can be used in API server.
+    # But not yet initialized.
+    def get_builtins(self) -> Dict[str, Dict[str, Any]]:
+        raise NotImplementedError
+
 
 # FIXME: Avoid using singleton pattern and class variables.
 # FIXME: This version of class is not thread-safe.

@@ -41,7 +41,7 @@ async def get_list() -> Any:
 # FIXME: we plan to use tritonclient.http.aio in the future
 async def get_metadata_from_url(module: str, url: str) -> Any:
     async with httpx.AsyncClient() as client:
-        tgt_url = url + f"/v2/modules/{module}"
+        tgt_url = url + f"/v2/models/{module}"
         response = await client.get(tgt_url)
 
         if response.status_code != 200:
