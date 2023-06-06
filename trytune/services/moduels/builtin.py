@@ -15,7 +15,7 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
         self.model.eval()
         pass
 
-    async def execute(self, requests: Any) -> Dict[str, DataSchema]:
+    async def execute(self, requests: Any) -> Dict[str, np.ndarray]:
         raise NotImplementedError
 
     def metadata(self) -> Dict[str, Any]:
@@ -30,7 +30,7 @@ class NMS(BuiltinModule):
     async def initialize(self, args: Dict[str, Any]) -> None:
         self.threshold = args["threshold"]
 
-    async def execute(self, requests: Any) -> Dict[str, DataSchema]:
+    async def execute(self, requests: Any) -> Dict[str, np.ndarray]:
         # If request has threshold, use it, otherwise use self.threshold
         raise NotImplementedError
 
@@ -42,7 +42,7 @@ class Crop(BuiltinModule):
     async def initialize(self, args: Dict[str, Any]) -> None:
         pass
 
-    async def execute(self, requests: Any) -> Dict[str, DataSchema]:
+    async def execute(self, requests: Any) -> Dict[str, np.ndarray]:
         raise NotImplementedError
 
     def metadata(self) -> Dict[str, Any]:

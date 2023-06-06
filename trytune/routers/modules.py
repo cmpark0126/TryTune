@@ -1,9 +1,9 @@
 import traceback
 from typing import Any, Dict, List
 
-import numpy as np
 from fastapi import APIRouter, HTTPException
 import httpx
+import numpy as np
 import tritonclient.http.aio as httpclient
 
 from trytune.schemas import common, module

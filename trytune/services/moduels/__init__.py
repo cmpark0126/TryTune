@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
+import numpy as np
+
 from trytune.schemas.common import DataSchema
 
 
@@ -26,7 +28,7 @@ class BuiltinModule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def execute(self, requests: Any) -> Dict[str, DataSchema]:
+    async def execute(self, requests: Any) -> Dict[str, np.ndarray]:
         raise NotImplementedError
 
     @abstractmethod
