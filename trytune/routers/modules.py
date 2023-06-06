@@ -4,8 +4,8 @@ from typing import Any, List, Dict
 import traceback
 import tritonclient.http.aio as httpclient
 from trytune.schemas import common, module
-from trytune.services.modules import modules
-from trytune.services.scheduler import scheduler
+from trytune.services.moduels import modules
+from trytune.services.schedulers import scheduler
 
 
 router = APIRouter()

@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 import tritonclient.http.aio as httpclient
 from trytune.schemas.common import InferSchema, DataSchema
 import trytune.services.schedulers.common as common
-from trytune.services.modules import modules
+from trytune.services.moduels import modules
 
 
 class FifoScheduler(common.SchedulerInner):
