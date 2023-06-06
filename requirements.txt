@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 fastapi==0.68.1
 setuptools==58.1.0
 respx==0.20.1
