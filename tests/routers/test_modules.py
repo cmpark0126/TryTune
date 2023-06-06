@@ -3,7 +3,7 @@ import respx
 
 
 @respx.mock
-def test_modules_scenario(client) -> None:  # type: ignore
+def test_triton_modules_scenario(client) -> None:  # type: ignore
     module = "test_module"
     add_module_schema = {
         "name": module,
@@ -111,6 +111,12 @@ def test_modules_scenario(client) -> None:  # type: ignore
     # assert len(result) == 1
     # assert "output__1" in result
     # assert len(result["output__0"].data) == 5
+
+
+@respx.mock
+def test_builtin_modules_scenario(client) -> None:  # type: ignore
+    raise NotImplementedError
+    pass
 
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)
