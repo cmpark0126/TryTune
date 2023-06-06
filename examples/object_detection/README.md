@@ -31,3 +31,4 @@ TODO
 ## Execute `client.py` to send request and obtain response from trytune
 
 TODO (response can be converted to multiple images)
+TODO (add pytest example also)
