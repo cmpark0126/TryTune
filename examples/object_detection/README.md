@@ -17,14 +17,14 @@ $ cp PennFudanPed/PNGImages/FudanPed00054.png FudanPed00054.png
 ### (Optional) Test Triton Python Backend code work well
 ```bash
 # Currently, we are on /obj_dtc_pipeline directory
-$ vi ./models.py
+$ vi ./model.py
 # Comment out `import triton_python_backend_utils as pb_utils`
 # Uncomment from `# To simulate triton python backend code without installing triton` to end of file
-$ python models.py --input ./FudanPed00054.png --output ./result.png
+$ python model.py --input ./FudanPed00054.png --output ./result.png
 # After the test, 
 ```
 
-## Launch TryTune & Triton Inference Server with `models.py`
+## Launch TryTune & Triton Inference Server with `model.py`
 
 TODO
 
