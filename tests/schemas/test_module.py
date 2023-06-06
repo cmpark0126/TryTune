@@ -3,35 +3,53 @@ from typing import Any, Dict
 from pydantic import ValidationError
 import pytest
 
-from trytune.schemas.module import AddModuleSchema
+from trytune.schemas.module import AddModuleSchema, ModuleTypeSchema
 
 
 def test_add_module_schema() -> None:
     valid_data = {
         "name": "test_module",
+        "type": "triton",
         "urls": {
-            "g4dn.xlarge": "eks.ingress.url/g4dn",
-            "g5.xlarge": "eks.ingress.url/g5",
-            "inf1.xlarge": "eks.ingress.url/inf1",
+            "g4dn.xlarge": "http://example.com/g4dn",
         },
     }
-
     # Test valid data
-    try:
-        add_module = AddModuleSchema(**valid_data)
-    except ValidationError as e:
-        assert False, f"Failed to create schema instance with valid data: {e}"
-
-    # Access schema fields
+    add_module = AddModuleSchema(**valid_data)
     assert add_module.name == "test_module"
-    assert add_module.urls["g4dn.xlarge"] == "eks.ingress.url/g4dn"
-    assert add_module.urls["g5.xlarge"] == "eks.ingress.url/g5"
-    assert add_module.urls["inf1.xlarge"] == "eks.ingress.url/inf1"
+    assert add_module.type == ModuleTypeSchema.TRITON
+    assert add_module.urls["g4dn.xlarge"] == "http://example.com/g4dn"
 
-    # Test missing required field
-    invalid_data: Dict[str, Any] = {
+    # Test invalid url
+    invalid_data = valid_data = {
         "name": "test_module",
+        "type": "triton",
+        "urls": {
+            "g4dn.xlarge": "not_a_valid_url",
+        },
     }
+    with pytest.raises(ValidationError):
+        AddModuleSchema(**invalid_data)
 
+    # Test valid builtin
+    valid_data = {
+        "name": "test_module",
+        "type": "builtin",
+        "builtin_args": {
+            "arg1": "value1",
+        },
+    }
+    add_module = AddModuleSchema(**valid_data)
+    assert add_module.name == "test_module"
+    assert add_module.type == ModuleTypeSchema.BUILTIN
+    assert add_module.builtin_args["arg1"] == "value1"
+
+    # Test invalid builtin_args
+    invalid_data = {
+        "name": "test_module",
+        "type": "builtin",
+        "builtin_args": {},
+    }
+    invalid_data["builtin_args"] = {}
     with pytest.raises(ValidationError):
         AddModuleSchema(**invalid_data)

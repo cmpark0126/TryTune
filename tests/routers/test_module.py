@@ -7,6 +7,7 @@ def test_module_scenario(client) -> None:  # type: ignore
     module = "test_module"
     add_module_schema = {
         "name": module,
+        "type": "triton",
         "urls": {"g4dn.xlarge": "http://g4dn.xlarge:8000", "g5.xlarge": "http://g5.xlarge:8000"},
     }
 
@@ -14,12 +15,13 @@ def test_module_scenario(client) -> None:  # type: ignore
     assert response.status_code == 404, response.content
 
     # Add module with no urls
-    response = client.post(f"/modules/add", json={"name": module, "urls": {}})
-    assert response.status_code == 400, response.content
+    response = client.post(f"/modules/add", json={"name": module, "type": "triton", "urls": {}})
+    assert response.status_code == 422, response.content
 
     # Mock the response from the triton server
     dummy_module_invalid_datatype = {
         "name": module,
+        "type": "triton",
         "inputs": [{"name": "input__0", "datatype": "FP32", "shape": [2, 2, 2]}],
         "outputs": [
             {"name": "output__0", "datatype": "INT64", "shape": [5]},
@@ -37,6 +39,7 @@ def test_module_scenario(client) -> None:  # type: ignore
     # Mock the response from the triton server
     dummy_module_metadata = {
         "name": module,
+        "type": "triton",
         "inputs": [{"name": "input__0", "datatype": "FP32", "shape": [2, 2, 2]}],
         "outputs": [
             {"name": "output__0", "datatype": "FP32", "shape": [5]},
@@ -44,6 +47,7 @@ def test_module_scenario(client) -> None:  # type: ignore
     }
     dummy_module_metadata_crashed = {
         "name": module,
+        "type": "triton",
         "inputs": [{"name": "input__0", "datatype": "FP32", "shape": [2, 2, 2]}],
         "outputs": [
             {"name": "output__0", "datatype": "FP32", "shape": [1]},

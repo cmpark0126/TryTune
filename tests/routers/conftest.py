@@ -23,6 +23,7 @@ def add_module_schema() -> Dict[str, Any]:
         # FIXME: generalize this test
         # NOTE: we assume we use the model from https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch
         "name": "resnet50",
+        "type": "triton",
         "urls": {
             "g4dn.xlarge": "http://<address>:80/path/to/server",
             "g5.xlarge": "http://<address>:80/path/to/server",

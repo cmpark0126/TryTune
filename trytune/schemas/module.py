@@ -1,6 +1,19 @@
+from enum import Enum
 from typing import Dict
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, ValidationError
+
+
+class ModuleTypeSchema(str, Enum):
+    TRITON = "triton"
+    BUILTIN = "builtin"
+    # PYTORCH = "pytorch"
+    # TENSORFLOW = "tensorflow"
+    # ONNX = "onnx"
+    # MXNET = "mxnet"
+    # CNTK = "cntk"
+    # CAFFE2 = "caffe2"
+    # CUSTOM = "custom"
 
 
 class AddModuleSchema(BaseModel):
@@ -43,4 +56,36 @@ class AddModuleSchema(BaseModel):
     """
 
     name: str
-    urls: Dict[str, str]
+    type: ModuleTypeSchema
+    urls: Dict[str, str] = {}
+    builtin_args: Dict[str, str] = {}
+
+    @validator("urls")
+    def validate_urls(cls, urls, values):  # type: ignore
+        type = values.get("type")
+        if type == ModuleTypeSchema.TRITON:
+            if len(urls) == 0:
+                raise ValueError("urls should not be empty for triton module")
+
+            cond = all(
+                url.startswith("http://") or url.startswith("https://") for url in urls.values()
+            )
+            if not cond:
+                raise ValueError("all urls should start with http:// or https://")
+        else:
+            if len(urls) != 0:
+                raise ValueError(f"urls should be empty when type is {type}")
+
+        return urls
+
+    @validator("builtin_args")
+    def validate_builtin_args(cls, builtin_args, values):  # type: ignore
+        type = values.get("type")
+        if type == ModuleTypeSchema.BUILTIN:
+            if len(builtin_args) == 0:
+                raise ValueError("builtin_args should not be empty for builtin module")
+        else:
+            if len(builtin_args) != 0:
+                raise ValueError(f"builtin_args should be empty when type is {type}")
+
+        return builtin_args
