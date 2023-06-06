@@ -9,7 +9,7 @@ $ cd trytune-py
 $ python -m pip install -r requirements.txt
 $ python -m pip install tritonclient[http] # or tritonclient\[http\]
 $ python -m pip install . # install trytune
-$ uvicorn fastapi.main:app --host 0.0.0.0 --port 80 --log-level trace # --reload if necessary
+$ uvicorn trytune.main:app --host 0.0.0.0 --port 80 --log-level trace # --reload if necessary
 ```
 
 ## Test
