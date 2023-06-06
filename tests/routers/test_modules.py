@@ -83,7 +83,7 @@ def test_triton_modules_scenario(client) -> None:  # type: ignore
     assert response.status_code == 400, response.content
 
     # Get metadata
-    response = client.get(f"/modules/{module}")
+    response = client.get(f"/modules/{module}/metadata")
     assert response.status_code == 200, response.content
     assert response.json() == obtained_metadata
 
@@ -113,10 +113,8 @@ def test_triton_modules_scenario(client) -> None:  # type: ignore
     # assert len(result["output__0"].data) == 5
 
 
-@respx.mock
 def test_builtin_modules_scenario(client) -> None:  # type: ignore
     raise NotImplementedError
-    pass
 
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)

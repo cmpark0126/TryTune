@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict
 
-from pydantic import BaseModel, validator, ValidationError
+from pydantic import BaseModel, validator
 
 
 class ModuleTypeSchema(str, Enum):

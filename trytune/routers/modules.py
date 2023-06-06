@@ -42,6 +42,11 @@ def check_datatypes(data: dict) -> None:
             raise Exception(f"Unsupported datatype {datatype}")
 
 
+@router.get("/modules/avaliable_builtins")
+async def get_available_builtins() -> Any:
+    return modules.available_builtins
+
+
 @router.get("/modules/list")
 async def get_list() -> Any:
     data = {}
@@ -116,7 +121,7 @@ def validate(tensors: Dict[str, np.ndarray], metadata: Dict[str, Any]) -> None:
     pass
 
 
-@router.get("/modules/{module}")
+@router.get("/modules/{module}/metadata")
 async def get_metadata(module: str) -> Any:
     try:
         return modules.get(module)["metadata"]
