@@ -75,7 +75,7 @@ class TritonPythonModel:
         print("Cleaning up...")
 
 
-# NOTE: if you want to test this model locally, you can use the following code and comment `import triton_python_backend_utils as pb_utils` too
+# NOTE: if you want to test this model locally, you can use the following code and comment out `import triton_python_backend_utils as pb_utils` too
 # # To simulate triton python backend code without installing triton
 # import types
 
