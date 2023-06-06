@@ -3,7 +3,7 @@ import respx
 
 
 @respx.mock
-def test_module_scenario(client) -> None:  # type: ignore
+def test_modules_scenario(client) -> None:  # type: ignore
     module = "test_module"
     add_module_schema = {
         "name": module,

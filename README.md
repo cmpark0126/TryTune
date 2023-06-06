@@ -19,7 +19,7 @@ $ python -m pytest -s -v -k "not k8s" # run with mock
 ...
 collected 7 items / 1 deselected / 6 selected
 
-tests/routers/test_module.py::test_module_scenario PASSED
+tests/routers/test_modules.py::test_modules_scenario PASSED
 tests/routers/test_scheduler.py::test_scheduler_scenario PASSED
 tests/schemas/test_common.py::test_infer_schema PASSED
 tests/schemas/test_module.py::test_add_module_schema PASSED
