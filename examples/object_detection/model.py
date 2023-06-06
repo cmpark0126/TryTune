@@ -4,7 +4,6 @@ from typing import Any, Dict
 import numpy as np
 import torch
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
-
 import triton_python_backend_utils as pb_utils  # type: ignore
 
 

@@ -13,8 +13,18 @@ from trytune.services.schedulers import scheduler
 router = APIRouter()
 
 DATATYPES = [
-    "FP32"
-]  # "FP16", "FP32", "FP64", "INT8", "INT16", "INT32", "INT64", "BOOL" are not supported yet
+    "FP32",
+    "INT32",
+]  # "FP16", "FP32", "FP64", "INT8", "INT16", "INT64", "BOOL" are not supported yet
+
+
+def to_numpy_dtype(datatype: str) -> Any:
+    if datatype == "FP32":
+        np.float32
+    elif datatype == "INT32":
+        np.int32
+    else:
+        raise Exception(f"Unsupported datatype {datatype}")
 
 
 def check_datatypes(data: dict) -> None:
@@ -91,13 +101,6 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
 
     # Return the response with the stored information
     return metadata
-
-
-def to_numpy_dtype(datatype: str) -> Any:
-    if datatype == "FP32":
-        np.float32
-    else:
-        raise Exception(f"Unsupported datatype {datatype}")
 
 
 def validate(tensors: Dict[str, np.ndarray], metadata: Dict[str, Any]) -> None:
