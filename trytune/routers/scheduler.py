@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException
-from typing import Any
 import traceback
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+
 from trytune.schemas.scheduler import SetSchedulerSchema
 from trytune.services.schedulers import scheduler
 

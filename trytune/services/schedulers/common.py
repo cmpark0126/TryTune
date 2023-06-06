@@ -1,14 +1,16 @@
-import numpy as np
-from urllib.parse import urlparse
 from abc import ABC, abstractmethod
-from typing import Any, List, Dict
+from typing import Any, Dict, List
+from urllib.parse import urlparse
+
+import numpy as np
 import tritonclient.http.aio as httpclient
-from trytune.schemas.common import InferSchema, DataSchema
+
+from trytune.schemas.common import DataSchema, InferSchema
 
 
 class SchedulerInner(ABC):
     @abstractmethod
-    async def infer(self, schema: InferSchema) -> Dict[str, DataSchema]:
+    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
         raise NotImplementedError("infer is not implemented")
 
     @abstractmethod
@@ -34,8 +36,8 @@ def get_numpy_dtype(datatype: str) -> Any:
 async def infer_with_triton(
     url: str,
     module_metadata: Dict[str, Any],
-    inputs: Dict[str, DataSchema],
-) -> Dict[str, DataSchema]:
+    inputs: Dict[str, np.ndarray],
+) -> Dict[str, np.ndarray]:
     """
     Request to triton server to infer the module with the given inputs.
 
@@ -72,10 +74,9 @@ async def infer_with_triton(
         outputs=infer_requested_outputs,
     )
 
-    outputs: Dict[str, DataSchema] = {}
+    outputs: Dict[str, np.ndarray] = {}
     for output_metadata in module_metadata["outputs"]:
         name = output_metadata["name"]
-        output = result.as_numpy(name).tolist()
-        outputs[name] = DataSchema(data=output)
+        outputs[name] = result.as_numpy(name)
 
     return outputs

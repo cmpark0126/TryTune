@@ -1,5 +1,7 @@
-from fastapi import APIRouter
 from typing import Any
+
+from fastapi import APIRouter
+
 from trytune.schemas import common
 
 router = APIRouter()

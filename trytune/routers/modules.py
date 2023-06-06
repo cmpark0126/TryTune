@@ -1,12 +1,14 @@
-import httpx
-from fastapi import APIRouter, HTTPException
-from typing import Any, List, Dict
 import traceback
+from typing import Any, Dict, List
+
+import numpy as np
+from fastapi import APIRouter, HTTPException
+import httpx
 import tritonclient.http.aio as httpclient
+
 from trytune.schemas import common, module
 from trytune.services.moduels import modules
 from trytune.services.schedulers import scheduler
-
 
 router = APIRouter()
 
@@ -91,7 +93,14 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
     return metadata
 
 
-def validate(outs: Dict[str, common.DataSchema]) -> None:
+def to_numpy_dtype(datatype: str) -> Any:
+    if datatype == "FP32":
+        np.float32
+    else:
+        raise Exception(f"Unsupported datatype {datatype}")
+
+
+def validate(tensors: Dict[str, np.ndarray], metadata: Dict[str, Any]) -> None:
     # for out in outs:
     #     if out.name != schema.target:
     #         raise Exception(f"Output {out.name} does not match the target {schema.target}")
@@ -121,27 +130,43 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
         )
 
     try:
-        _ = modules.get(schema.target)
+        metadata = modules.get(module)["metadata"]
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Module {module} not found.")
 
+    _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
+
     try:
-        validate(schema.inputs)
+        for input in metadata["inputs"]:
+            _metadata["inputs"][input["name"]] = input
+        for output in metadata["outputs"]:
+            _metadata["outputs"][output["name"]] = output
+
+        inputs: Dict[str, np.ndarray] = {}
+        for name, input in schema.inputs.items():
+            datatype = _metadata["inputs"][name]["datatype"]
+            inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype))
+
+        validate(inputs, _metadata)
     except Exception:
         raise HTTPException(
             status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
         )
 
     try:
-        outs = await scheduler.infer(schema)
+        outputs = await scheduler.infer(module, inputs)
     except Exception:
         raise HTTPException(status_code=400, detail=f"While infering: {traceback.format_exc()}")
 
     try:
-        validate(outs)
+        validate(outputs, _metadata)
     except Exception:
         raise HTTPException(
             status_code=400, detail=f"While validating outputs: {traceback.format_exc()}"
         )
 
-    return outs
+    response = {}
+    for name, output in outputs.items():
+        response[name] = output.tolist()
+
+    return response

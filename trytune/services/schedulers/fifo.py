@@ -1,7 +1,10 @@
 from typing import Any, Dict
+
+import numpy as np
+
 from trytune.schemas.common import InferSchema
-import trytune.services.schedulers.common as common
 from trytune.services.moduels import modules
+import trytune.services.schedulers.common as common
 
 
 class FifoScheduler(common.SchedulerInner):
@@ -16,8 +19,10 @@ class FifoScheduler(common.SchedulerInner):
         self.config = config
         pass
 
-    async def infer(self, schema: InferSchema) -> Dict[str, common.DataSchema]:
-        module = modules.get(schema.target)
+    async def infer(
+        self, module_name: str, inputs: Dict[str, np.ndarray]
+    ) -> Dict[str, np.ndarray]:
+        module = modules.get(module_name)
 
         metadata = module["metadata"]
         urls = module["metadata"]["urls"]
@@ -26,7 +31,7 @@ class FifoScheduler(common.SchedulerInner):
         # TODO: use round robin to schedule the requests
         url = urls[instance_types[0]]
 
-        return await common.infer_with_triton(url, metadata, schema.inputs)
+        return await common.infer_with_triton(url, metadata, inputs)
 
     async def start(self) -> None:
         pass

@@ -1,6 +1,9 @@
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
+
+import numpy as np
+
 from trytune.schemas.common import InferSchema
-from trytune.services.schedulers import fifo, common
+from trytune.services.schedulers import common, fifo
 
 
 class Scheduler:
@@ -26,10 +29,10 @@ class Scheduler:
         self.inner = None
 
     # Return the output of the request as a list of DataSchema
-    async def infer(self, schema: InferSchema) -> Dict[str, common.DataSchema]:
+    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
         if self.inner is None:
             raise Exception("Scheduler inner is not set")
-        return await self.inner.infer(schema)
+        return await self.inner.infer(module, inputs)
 
 
 # FIXME: Avoid using singleton pattern

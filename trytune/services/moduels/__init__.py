@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
+
 from trytune.schemas.common import DataSchema
 
 

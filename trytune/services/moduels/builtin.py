@@ -1,8 +1,10 @@
 from typing import Any, Dict
+
+import numpy as np
+from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
+
 from trytune.schemas.common import DataSchema
 from trytune.services.moduels import BuiltinModule
-import numpy as np
-from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
 
 
 class FasterRCNN_ResNet50_FPN(BuiltinModule):

@@ -1,5 +1,5 @@
-import respx
 from httpx import Response
+import respx
 
 
 @respx.mock

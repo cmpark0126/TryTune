@@ -1,8 +1,9 @@
-import pytest
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
+
 from trytune.routers import modules, scheduler
 
 

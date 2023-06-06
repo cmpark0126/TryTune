@@ -1,6 +1,8 @@
-import pytest
+from typing import Any, Dict
+
 from pydantic import ValidationError
-from typing import Dict, Any
+import pytest
+
 from trytune.schemas.module import AddModuleSchema
 
 

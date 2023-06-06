@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from trytune.routers import modules, pipelines
 
 app = FastAPI()
