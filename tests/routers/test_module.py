@@ -25,7 +25,7 @@ def test_module_scenario(client) -> None:  # type: ignore
             {"name": "output__0", "datatype": "INT32", "shape": [5]},
         ],
     }
-    route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/modules/{module}").mock(
+    route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/models/{module}").mock(
         return_value=Response(200, json=dummy_module_invalid_datatype)
     )
     # Add module with invalid urls
@@ -49,10 +49,10 @@ def test_module_scenario(client) -> None:  # type: ignore
             {"name": "output__0", "datatype": "FP32", "shape": [1]},
         ],
     }
-    route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/modules/{module}").mock(
+    route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/models/{module}").mock(
         return_value=Response(200, json=dummy_module_metadata)
     )
-    route_2 = respx.get(f"http://g5.xlarge:8000/v2/modules/{module}").mock(
+    route_2 = respx.get(f"http://g5.xlarge:8000/v2/models/{module}").mock(
         return_value=Response(200, json=dummy_module_metadata_crashed)
     )
     # Add module with invalid urls
@@ -62,10 +62,10 @@ def test_module_scenario(client) -> None:  # type: ignore
     assert response.status_code == 400, response.content
 
     # Mock the response from the triton server
-    route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/modules/{module}").mock(
+    route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/models/{module}").mock(
         return_value=Response(200, json=dummy_module_metadata)
     )
-    route_2 = respx.get(f"http://g5.xlarge:8000/v2/modules/{module}").mock(
+    route_2 = respx.get(f"http://g5.xlarge:8000/v2/models/{module}").mock(
         return_value=Response(200, json=dummy_module_metadata)
     )
     response = client.post(f"/modules/add", json=add_module_schema)
@@ -98,7 +98,7 @@ def test_module_scenario(client) -> None:  # type: ignore
     #     "target": module,
     #     "inputs": {"input__0": {"data": [0.0] * 8}},  # 8 == 2 * 2 * 2
     # }
-    # route_1 = respx.post(f"http://g4dn.xlarge:8001/v2/modules/{module}/infer").mock(
+    # route_1 = respx.post(f"http://g4dn.xlarge:8001/v2/models/{module}/infer").mock(
     #     return_value=Response(200, json=dummy_result)
     # )
     # response = client.post(f"/modules/infer", json=infer_schema)
