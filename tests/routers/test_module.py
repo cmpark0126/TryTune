@@ -22,7 +22,7 @@ def test_module_scenario(client) -> None:  # type: ignore
         "name": module,
         "inputs": [{"name": "input__0", "datatype": "FP32", "shape": [2, 2, 2]}],
         "outputs": [
-            {"name": "output__0", "datatype": "INT32", "shape": [5]},
+            {"name": "output__0", "datatype": "INT64", "shape": [5]},
         ],
     }
     route_1 = respx.get(f"http://g4dn.xlarge:8000/v2/models/{module}").mock(
