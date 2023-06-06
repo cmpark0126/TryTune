@@ -79,10 +79,16 @@ def test_module_scenario(client) -> None:  # type: ignore
     assert response.status_code == 400
 
     # Get metadata
-    response = client.get(f"/modules/{module}/metadata")
+    response = client.get(f"/modules/{module}")
     assert response.status_code == 200
     assert response.json() == obtained_metadata
 
+    response = client.get(f"/modules/list")
+    print(response.content)
+    assert response.status_code == 200
+    print(response.json())
+
+    # Set scheduler
     scheduler_schema = {"name": "fifo", "config": {}}
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200
@@ -121,7 +127,7 @@ def test_module_scenario_on_k8s(client, add_module_schema) -> None:  # type: ign
         "target": add_module_schema["name"],
         "inputs": {"input__0": {"data": [0.0] * 3 * 224 * 224}},
     }
-    response = client.post(f"/modules/infer", json=infer_schema)
+    response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
     assert response.status_code == 200
     result = response.json()
 

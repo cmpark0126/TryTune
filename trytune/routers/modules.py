@@ -30,12 +30,12 @@ def check_datatypes(data: dict) -> None:
             raise Exception(f"Unsupported datatype {datatype}")
 
 
-@router.get("/modules/{module}/metadata")
-async def get_metadata(module: str) -> Any:
-    try:
-        return modules.get(module)["metadata"]
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Model {module} not found.")
+@router.get("/modules/list")
+async def get_list() -> Any:
+    data = {}
+    for name, module in modules.modules.items():
+        data[name] = module["metadata"]
+    return data
 
 
 # FIXME: we plan to use tritonclient.http.aio in the future
@@ -53,7 +53,7 @@ async def get_metadata_from_url(module: str, url: str) -> Any:
 @router.post("/modules/add")
 async def add_module(schema: module.AddModuleSchema) -> Any:
     if schema.name in modules.modules:
-        raise HTTPException(status_code=400, detail=f"Model {module} already exists.")
+        raise HTTPException(status_code=400, detail=f"Module {module} already exists.")
 
     # Send the request to the triton server to get module metadata
     if len(schema.urls) == 0:
@@ -80,7 +80,7 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
         if metadata != other:
             raise HTTPException(
                 status_code=400,
-                detail=f"Model metadata mismatch: {urls[0]}'s {metadata}, {url}'s {other}",
+                detail=f"Module metadata mismatch: {urls[0]}'s {metadata}, {url}'s {other}",
             )
 
     # add module to module registry
@@ -104,12 +104,26 @@ def validate(outs: Dict[str, common.DataSchema]) -> None:
     pass
 
 
-@router.post("/modules/infer")
-async def infer(schema: common.InferSchema) -> Any:
+@router.get("/modules/{module}")
+async def get_metadata(module: str) -> Any:
+    try:
+        return modules.get(module)["metadata"]
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Module {module} not found.")
+
+
+@router.post("/modules/{module}/infer")
+async def infer(module: str, schema: common.InferSchema) -> Any:
+    if module != schema.target:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Module {module} does not match the target inside the schema {schema.target}",
+        )
+
     try:
         _ = modules.get(schema.target)
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Model {module} not found.")
+        raise HTTPException(status_code=404, detail=f"Module {module} not found.")
 
     try:
         validate(schema.inputs)

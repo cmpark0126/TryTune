@@ -25,5 +25,4 @@ class InferSchema(BaseModel):
     """
 
     target: str
-    # TODO: add target type enum pipeline/module
     inputs: Dict[str, DataSchema]
