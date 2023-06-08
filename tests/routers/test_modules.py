@@ -127,7 +127,7 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
 
     infer_schema = {
         "target": add_module_schema["name"],
-        "inputs": {"BATCH_IMAGE": {"data": batch_img.numpy().tolist()}},
+        "inputs": {"BATCH_IMAGE": {"data": batch_img.numpy().tolist(), "shape": batch_img.shape}},
     }
     response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
     assert response.status_code == 200, response.content

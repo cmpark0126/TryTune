@@ -131,6 +131,7 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
         raise HTTPException(status_code=400, detail=f"Unsupported module type {schema.type}")
 
 
+# TODO: dynamic shape validation also needs to be done
 def validate(tensors: Dict[str, np.ndarray], metadata: Dict[str, Any]) -> None:
     # for out in outs:
     #     if out.name != schema.target:
@@ -176,8 +177,12 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
         inputs: Dict[str, np.ndarray] = {}
         for name, input in schema.inputs.items():
             datatype = _metadata["inputs"][name]["datatype"]
-            # TODO: add reshape
-            inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype))
+            if input.shape is not None:
+                shape = input.shape
+            else:
+                shape = _metadata["inputs"][name]["shape"]
+
+            inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype)).reshape(shape)
 
         validate(inputs, _metadata)
     except Exception:
