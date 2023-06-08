@@ -28,9 +28,28 @@ tests/schemas/test_pipeline.py::test_pipeline_add_schema PASSED
 tests/schemas/test_scheduler.py::test_set_scheduler_schema PASSED
 ```
 
-If you want to test real triton server behavior, please follow below:
+If you want to test the triton inference server launched at the localhost, please follow below:
 ```bash
-$ kubectl get ingress # To check ingress address (without http maybe)
+# Please follow the guideline of https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch to launch triton inference server on your localhost
+$ vi tests/routers/conftest.py # modify add_module_schema function like below
+{
+    "name": "resnet50",
+    "type": "triton",
+    "urls": {
+        "localhost": "http://localhost:8000"
+    },
+}
+$ python -m pytest -s -v -k "k8s"
+...
+collected 7 items / 6 deselected / 1 selected 
+
+tests/routers/test_modules.py::test_modules_scenario_on_k8s >> Result Top 5: [ 90: 12.474466323852539 92: 11.525705337524414 14: 9.660507202148438 136: 8.406360626220703 11: 8.220252990722656 ] << PASSED
+```
+
+If you want to test with your triton inference server deployed at k8s, please follow below:
+```bash
+$ kubectl get ingress (or kubectl get services) # To check address
+# Assume that the ingress (or service) is connected to the triton inference server load resnet50 provided by https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch
 $ vi tests/routers/conftest.py # modify add_module_schema function with appropriate value
 $ python -m pytest -s -v -k "k8s"
 ...
