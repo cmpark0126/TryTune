@@ -5,8 +5,8 @@ from urllib.parse import urlparse
 import numpy as np
 import tritonclient.http.aio as httpclient
 
-from trytune.schemas.common import DataSchema, InferSchema
 from trytune.schemas.module import ModuleTypeSchema
+from trytune.services.moduels import modules
 
 
 class SchedulerInner(ABC):
@@ -35,9 +35,10 @@ def get_numpy_dtype(datatype: str) -> Any:
 
 
 async def infer_with_triton(
-    url: str,
-    module_metadata: Dict[str, Any],
+    module_name: str,
+    module: Dict[str, Any],
     inputs: Dict[str, np.ndarray],
+    url: str,
 ) -> Dict[str, np.ndarray]:
     """
     Request to triton server to infer the module with the given inputs.
@@ -47,6 +48,8 @@ async def infer_with_triton(
     """
     infer_inputs: List[httpclient.InferInput] = []
     infer_requested_outputs: List[httpclient.InferRequestedOutput] = []
+
+    module_metadata = module["metadata"]
 
     for input_metadata in module_metadata["inputs"]:
         name = input_metadata["name"]
@@ -84,28 +87,27 @@ async def infer_with_triton(
 
 
 async def infer_with_builtin(
-    module_metadata: Dict[str, Any],
+    module_name: str,
+    module: Dict[str, Any],
     inputs: Dict[str, np.ndarray],
 ) -> Dict[str, np.ndarray]:
-    raise NotImplementedError("infer_with_builtin is not implemented")
+    instance = module["instance"]
+    return await instance.execute(inputs)
 
 
 async def infer(
-    module_metadata: Dict[str, Any],
-    inputs: Dict[str, np.ndarray],
-    instance_type: Optional[str] = None,
+    module_name: str, inputs: Dict[str, np.ndarray], **kwargs: Any
 ) -> Dict[str, np.ndarray]:
-    module_type: ModuleTypeSchema = module_metadata["type"]
+    module = modules.get(module_name)
+    metadata = module["metadata"]
+    module_type: ModuleTypeSchema = metadata["type"]
     if module_type == ModuleTypeSchema.TRITON:
-        if instance_type is None:
+        if "instance_type" not in kwargs:
             raise ValueError("instance_type should not be None for triton module")
 
-        url = module_metadata["urls"][instance_type]
-        return await infer_with_triton(url, module_metadata, inputs)
+        url = metadata["urls"][kwargs["instance_type"]]
+        return await infer_with_triton(module_name, module, inputs, url)
     elif module_type == ModuleTypeSchema.BUILTIN:
-        if instance_type is not None:
-            # TODO: change to logger
-            print("instance_type is ignored for builtin module")
-        return await infer_with_builtin(module_metadata, inputs)
+        return await infer_with_builtin(module_name, module, inputs)
     else:
         raise ValueError(f"module type {module_type} is not supported")

@@ -23,13 +23,12 @@ class FifoScheduler(common.SchedulerInner):
         self, module_name: str, inputs: Dict[str, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         module = modules.get(module_name)
-
         metadata = module["metadata"]
         urls = module["metadata"]["urls"]
         assert len(urls) > 0
         instance_type = [instance_type for instance_type, _ in urls.items()][0]
 
-        return await common.infer(metadata, inputs, instance_type=instance_type)
+        return await common.infer(module_name, inputs, instance_type=instance_type)
 
     async def start(self) -> None:
         pass

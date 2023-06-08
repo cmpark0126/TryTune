@@ -110,7 +110,7 @@ async def add_builtin_module(schema: module.AddModuleSchema) -> Any:
         raise HTTPException(status_code=400, detail="No builtin_args provided.")
 
     instance = modules.available_builtins[schema.builtin_args["target"]]["object"]()
-    instance.initialize(schema.builtin_args)
+    await instance.initialize(schema.builtin_args)
     metadata = instance.metadata()
     metadata["type"] = schema.type
 
