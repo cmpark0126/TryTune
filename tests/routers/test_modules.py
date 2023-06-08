@@ -324,6 +324,8 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
         result_path="./assets/FudanPed00054_result.png",
     )
 
+    print(">> Result is visualized at ./assets/FudanPed00054_result.png << ", end="")
+
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)
 # For testing on k8s
@@ -361,8 +363,8 @@ def test_modules_scenario_on_k8s(client, add_module_schema) -> None:  # type: ig
     assert len(result) == len(obtained_metadata["outputs"])
     assert "output__0" in result
     array = np.array(result["output__0"]).reshape(1000)
-    big5 = np.argsort(array)
-    print("[", end=" ")
-    for i in big5[::-1][:5]:
+    top5 = np.argsort(array)
+    print(">> Result Top 5: [", end=" ")
+    for i in top5[::-1][:5]:
         print(f"{i}: {array[i]}", end=" ")
-    print("]")
+    print("] << ", end="")
