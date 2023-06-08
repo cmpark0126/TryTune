@@ -3,7 +3,7 @@ import respx
 
 
 @respx.mock
-def test_triton_modules_scenario(client) -> None:  # type: ignore
+def test_modules_scenario(client) -> None:  # type: ignore
     module = "test_module"
     add_module_schema = {
         "name": module,
@@ -119,7 +119,7 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)
 # For testing on k8s
-def test_module_scenario_on_k8s(client, add_module_schema) -> None:  # type: ignore
+def test_modules_scenario_on_k8s(client, add_module_schema) -> None:  # type: ignore
     response = client.post(f"/modules/add", json=add_module_schema)
     assert response.status_code == 200, response.content
     obtained_metadata = response.json()
