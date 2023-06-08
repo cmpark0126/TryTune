@@ -152,14 +152,29 @@ def test_modules_scenario_on_k8s(client, add_module_schema) -> None:  # type: ig
 
     # FIXME: generalize this test
     # NOTE: we assume we use the module from https://github.com/triton-inference-server/tutorials/tree/main/Quick_Deploy/PyTorch
+    # Load input image
+    img_pil = Image.open("./assets/header-gulf-birds.jpg")
+    transform = T.Compose(
+        [
+            T.Resize(256),
+            T.CenterCrop(224),
+            T.ToTensor(),
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+    img = transform(img_pil)
+
     infer_schema = {
         "target": add_module_schema["name"],
-        "inputs": {"input__0": {"data": [0.0] * 3 * 224 * 224}},
+        "inputs": {"input__0": {"data": img.numpy().tolist()}},
     }
     response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
     assert response.status_code == 200, response.content
     result = response.json()
 
     assert len(result) == len(obtained_metadata["outputs"])
-    for output in obtained_metadata["outputs"]:
-        assert output["name"] in result
+    assert "output__0" in result
+    array = np.array(result["output__0"]).reshape(1000)
+    big5 = np.argsort(array)
+    for i in big5[::-1][:5]:
+        print(f"{i}: {array[i]}")
