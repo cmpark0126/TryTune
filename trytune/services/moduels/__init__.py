@@ -21,9 +21,10 @@ class Modules:
                 metadata = obj().metadata()
                 metadata["name"] = name
                 metadata["is_builtin"] = True
-                self.available_builtins[name] = metadata
-                # FIXME: convert to debug log
                 print(f"Found builtin module: {name}: {metadata}")
+
+                self.available_builtins[name] = {"metadata": metadata, "object": obj}
+                # FIXME: convert to debug log
 
     def set(self, module: str, metadata: Dict[str, Any]) -> None:
         assert module not in self.modules

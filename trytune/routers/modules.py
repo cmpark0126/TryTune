@@ -67,13 +67,9 @@ async def get_metadata_from_url(module: str, url: str) -> Any:
         return metadata
 
 
-@router.post("/modules/add")
-async def add_module(schema: module.AddModuleSchema) -> Any:
-    if schema.name in modules.modules:
-        raise HTTPException(status_code=400, detail=f"Module {module} already exists.")
-
+async def add_triton_module(schema: module.AddModuleSchema) -> Any:
     # Send the request to the triton server to get module metadata
-    if len(schema.urls) == 0:
+    if schema.urls is None or len(schema.urls) == 0:
         raise HTTPException(status_code=400, detail="No links provided.")
 
     # Request to triton server to get module metadata
@@ -102,10 +98,37 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
 
     # add module to module registry
     metadata["urls"] = schema.urls
+    metadata["type"] = schema.type
     modules.set(schema.name, {"metadata": metadata})
 
     # Return the response with the stored information
     return metadata
+
+
+async def add_builtin_module(schema: module.AddModuleSchema) -> Any:
+    if schema.builtin_args is None or len(schema.builtin_args) == 0:
+        raise HTTPException(status_code=400, detail="No builtin_args provided.")
+
+    instance = modules.available_builtins[schema.builtin_args["target"]]["object"]()
+    instance.initialize(schema.builtin_args)
+    metadata = instance.metadata()
+    metadata["type"] = schema.type
+
+    modules.set(schema.name, {"instance": instance, "metadata": metadata})
+    return metadata
+
+
+@router.post("/modules/add")
+async def add_module(schema: module.AddModuleSchema) -> Any:
+    if schema.name in modules.modules:
+        raise HTTPException(status_code=400, detail=f"Module {module} already exists.")
+
+    if schema.type == module.ModuleTypeSchema.TRITON:
+        return await add_triton_module(schema)
+    elif schema.type == module.ModuleTypeSchema.BUILTIN:
+        return await add_builtin_module(schema)
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported module type {schema.type}")
 
 
 def validate(tensors: Dict[str, np.ndarray], metadata: Dict[str, Any]) -> None:

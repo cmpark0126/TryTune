@@ -91,29 +91,31 @@ def test_modules_scenario(client) -> None:  # type: ignore
     assert response.status_code == 200, response.content
     assert response.json() == {module: obtained_metadata}
 
+
+# TODO: change to use nms builtin module
+def test_builtin_modules_scenario(client) -> None:  # type: ignore
+    module = "detection_module"
+    add_module_schemas = {
+        "name": module,
+        "type": "builtin",
+        "builtin_args": {"target": "FasterRCNN_ResNet50_FPN"},
+    }
+
+    # Add module
+    response = client.post(f"/modules/add", json=add_module_schemas)
+    assert response.status_code == 200, response.content
+    obtained_metadata = response.json()
+
+    # Get metadata
+    response = client.get(f"/modules/{module}/metadata")
+    assert response.status_code == 200, response.content
+    assert response.json() == obtained_metadata
+
     # Set scheduler
     scheduler_schema = {"name": "fifo", "config": {}}
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200, response.content
 
-    # TODO: test inferencing using mock server in the future
-    # infer_schema = {
-    #     "target": module,
-    #     "inputs": {"input__0": {"data": [0.0] * 8}},  # 8 == 2 * 2 * 2
-    # }
-    # route_1 = respx.post(f"http://g4dn.xlarge:8001/v2/models/{module}/infer").mock(
-    #     return_value=Response(200, json=dummy_result)
-    # )
-    # response = client.post(f"/modules/infer", json=infer_schema)
-    # assert route_1.called
-    # assert response.status_code == 200, response.content
-    # result = response.json()
-    # assert len(result) == 1
-    # assert "output__1" in result
-    # assert len(result["output__0"].data) == 5
-
-
-def test_builtin_modules_scenario(client) -> None:  # type: ignore
     raise NotImplementedError
 
 

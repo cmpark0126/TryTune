@@ -12,12 +12,18 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
         weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT
         self.model = fasterrcnn_resnet50_fpn(weights=weights, progress=False)
         self.model.eval()
+        self.args = args
         pass
 
     async def execute(self, requests: Any) -> Dict[str, np.ndarray]:
         raise NotImplementedError
 
     def metadata(self) -> Dict[str, Any]:
+        if hasattr(self, "args"):
+            args = self.args
+        else:
+            args = {}
+
         return {
             "inputs": [
                 {"name": "BATCH_IMAGE", "datatype": "FP32", "shape": [3, -1, -1]},
@@ -27,6 +33,7 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
                 {"name": "LABELS", "datatype": "INT32", "shape": [-1]},
                 {"name": "SCORES", "datatype": "FP32", "shape": [-1]},
             ],
+            "args": args,
             "max_batch_size": 1,
         }
 
