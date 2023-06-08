@@ -132,16 +132,27 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
 
 
 # TODO: dynamic shape validation also needs to be done
-def validate(tensors: Dict[str, np.ndarray], metadata: Dict[str, Any]) -> None:
-    # for out in outs:
-    #     if out.name != schema.target:
-    #         raise Exception(f"Output {out.name} does not match the target {schema.target}")
+def validate(
+    tensors: Dict[str, np.ndarray], metadata: Dict[str, Any], use_dynamic_batching: bool
+) -> None:
+    for name, tensor in tensors.items():
+        if use_dynamic_batching:
+            tensor_shape = tensor.shape[1:]
+        else:
+            tensor_shape = tensor.shape
+        shape = metadata[name]["shape"]
+        if len(tensor_shape) != len(shape):
+            raise Exception(
+                f"Tensor {name} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
+            )
 
-    #     if out.shape != schema.shape:
-    #         raise Exception(f"Output {out.shape} does not match the target {schema.shape}")
-
-    #     if out.datatype != schema.datatype:
-    #         raise Exception(f"Output {out.datatype} does not match the target {schema.datatype}")
+        for i in zip(tensor_shape, shape):
+            if i[1] == -1:
+                continue
+            if i[0] != i[1]:
+                raise Exception(
+                    f"Tensor {name} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
+                )
     pass
 
 
@@ -166,8 +177,12 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Module {module} not found.")
 
-    _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
+    if "max_batch_size" in metadata and metadata["max_batch_size"] > 0:
+        use_dynamic_batching = True
+    else:
+        use_dynamic_batching = False
 
+    _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
     try:
         for input in metadata["inputs"]:
             _metadata["inputs"][input["name"]] = input
@@ -184,7 +199,11 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
 
             inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype)).reshape(shape)
 
-        validate(inputs, _metadata)
+        validate(
+            inputs,
+            _metadata["inputs"],
+            use_dynamic_batching,
+        )
     except Exception:
         raise HTTPException(
             status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
@@ -196,7 +215,7 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
         raise HTTPException(status_code=400, detail=f"While infering: {traceback.format_exc()}")
 
     try:
-        validate(outputs, _metadata)
+        validate(outputs, _metadata["outputs"], use_dynamic_batching)
     except Exception:
         raise HTTPException(
             status_code=400, detail=f"While validating outputs: {traceback.format_exc()}"
