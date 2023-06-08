@@ -27,11 +27,9 @@ class FifoScheduler(common.SchedulerInner):
         metadata = module["metadata"]
         urls = module["metadata"]["urls"]
         assert len(urls) > 0
-        instance_types = [instance_type for instance_type, _ in urls.items()]
-        # TODO: use round robin to schedule the requests
-        url = urls[instance_types[0]]
+        instance_type = [instance_type for instance_type, _ in urls.items()][0]
 
-        return await common.infer_with_triton(url, metadata, inputs)
+        return await common.infer(metadata, inputs, instance_type=instance_type)
 
     async def start(self) -> None:
         pass

@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import numpy as np
 import tritonclient.http.aio as httpclient
 
 from trytune.schemas.common import DataSchema, InferSchema
+from trytune.schemas.module import ModuleTypeSchema
 
 
 class SchedulerInner(ABC):
@@ -80,3 +81,31 @@ async def infer_with_triton(
         outputs[name] = result.as_numpy(name)
 
     return outputs
+
+
+async def infer_with_builtin(
+    module_metadata: Dict[str, Any],
+    inputs: Dict[str, np.ndarray],
+) -> Dict[str, np.ndarray]:
+    raise NotImplementedError("infer_with_builtin is not implemented")
+
+
+async def infer(
+    module_metadata: Dict[str, Any],
+    inputs: Dict[str, np.ndarray],
+    instance_type: Optional[str] = None,
+) -> Dict[str, np.ndarray]:
+    module_type: ModuleTypeSchema = module_metadata["type"]
+    if module_type == ModuleTypeSchema.TRITON:
+        if instance_type is None:
+            raise ValueError("instance_type should not be None for triton module")
+
+        url = module_metadata["urls"][instance_type]
+        return await infer_with_triton(url, module_metadata, inputs)
+    elif module_type == ModuleTypeSchema.BUILTIN:
+        if instance_type is not None:
+            # TODO: change to logger
+            print("instance_type is ignored for builtin module")
+        return await infer_with_builtin(module_metadata, inputs)
+    else:
+        raise ValueError(f"module type {module_type} is not supported")

@@ -95,14 +95,14 @@ def test_modules_scenario(client) -> None:  # type: ignore
 # TODO: change to use nms builtin module
 def test_builtin_modules_scenario(client) -> None:  # type: ignore
     module = "detection_module"
-    add_module_schemas = {
+    add_module_schema = {
         "name": module,
         "type": "builtin",
         "builtin_args": {"target": "FasterRCNN_ResNet50_FPN"},
     }
 
     # Add module
-    response = client.post(f"/modules/add", json=add_module_schemas)
+    response = client.post(f"/modules/add", json=add_module_schema)
     assert response.status_code == 200, response.content
     obtained_metadata = response.json()
 
@@ -115,6 +115,11 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     scheduler_schema = {"name": "fifo", "config": {}}
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200, response.content
+
+    infer_schema = {
+        "target": add_module_schema["name"],
+        "inputs": {"BATCH_IMAGE": {"data": [0.0] * 3 * 224 * 224}},
+    }
 
     raise NotImplementedError
 
