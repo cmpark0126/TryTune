@@ -136,6 +136,10 @@ def validate(
     tensors: Dict[str, np.ndarray], metadata: Dict[str, Any], use_dynamic_batching: bool
 ) -> None:
     for name, tensor in tensors.items():
+        datatype = to_numpy_dtype(metadata[name]["datatype"])
+        if tensor.dtype != datatype:
+            raise Exception(f"Tensor {name} datatype mismatch: {tensor.dtype} vs {datatype}")
+
         if use_dynamic_batching:
             tensor_shape = tensor.shape[1:]
         else:

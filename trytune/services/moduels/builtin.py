@@ -28,9 +28,9 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
         batch_scores = []
         for pred in preds:
             # pred: {"boxes": <torch.Size([41, 4])>, "labels": torch.Size([41]), "scores": torch.Size([41])}
-            batch_boxes.append(pred["boxes"].detach().numpy())
-            batch_labels.append(pred["labels"].detach().numpy())
-            batch_scores.append(pred["scores"].detach().numpy())
+            batch_boxes.append(pred["boxes"].detach().numpy().astype(np.float32))
+            batch_labels.append(pred["labels"].detach().numpy().astype(np.int32))
+            batch_scores.append(pred["scores"].detach().numpy().astype(np.float32))
 
         # Create output tensors. You need pb_utils.Tensor
         # objects to create pb_utils.InferenceResponse.
