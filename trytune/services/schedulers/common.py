@@ -53,6 +53,9 @@ async def infer_with_triton(
 
     for input_metadata in module_metadata["inputs"]:
         name = input_metadata["name"]
+        if name not in inputs:
+            raise ValueError(f"input {name} is not provided for module {module_name}")
+
         shape = input_metadata["shape"]
         datatype = input_metadata["datatype"]
 
@@ -91,8 +94,16 @@ async def infer_with_builtin(
     module: Dict[str, Any],
     inputs: Dict[str, np.ndarray],
 ) -> Dict[str, np.ndarray]:
+    module_metadata = module["metadata"]
+    for input_metadata in module_metadata["inputs"]:
+        name = input_metadata["name"]
+        if name not in inputs:
+            raise ValueError(f"input {name} is not provided for module {module_name}")
+
     instance = module["instance"]
-    return await instance.execute(inputs)
+    request = {"inputs": inputs}
+    response = await instance.execute(request)
+    return response["outputs"]
 
 
 async def infer(

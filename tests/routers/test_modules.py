@@ -1,5 +1,8 @@
 from httpx import Response
 import respx
+from PIL import Image
+import torchvision.transforms as T
+import numpy as np
 
 
 @respx.mock
@@ -116,12 +119,24 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     response = client.post(f"/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200, response.content
 
+    # Load input image
+    img_pil = Image.open("./assets/FudanPed00054.png").convert("RGB")
+    transform = T.Compose([T.ToTensor()])
+    img = transform(img_pil)
+    batch_img = img.unsqueeze(0)
+
     infer_schema = {
         "target": add_module_schema["name"],
-        "inputs": {"BATCH_IMAGE": {"data": [0.0] * 3 * 224 * 224}},
+        "inputs": {"BATCH_IMAGE": {"data": batch_img.numpy().tolist()}},
     }
+    response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
+    assert response.status_code == 200, response.content
+    result = response.json()
 
-    raise NotImplementedError
+    assert len(result) == len(obtained_metadata["outputs"])
+    for output in obtained_metadata["outputs"]:
+        assert output["name"] in result
+        print(np.array(result[output["name"]]).shape)
 
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)

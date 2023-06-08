@@ -26,7 +26,7 @@ class BuiltinModule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def execute(self, requests: Any) -> Dict[str, np.ndarray]:
+    async def execute(self, requests: Any) -> Any:
         raise NotImplementedError
 
     # We use subset of the Triton Server Model Config: https://github.com/triton-inference-server/server/blob/main/docs/user_guide/model_configuration.md

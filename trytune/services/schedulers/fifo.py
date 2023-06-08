@@ -5,6 +5,7 @@ import numpy as np
 from trytune.schemas.common import InferSchema
 from trytune.services.moduels import modules
 import trytune.services.schedulers.common as common
+from trytune.schemas.module import ModuleTypeSchema
 
 
 class FifoScheduler(common.SchedulerInner):
@@ -24,11 +25,17 @@ class FifoScheduler(common.SchedulerInner):
     ) -> Dict[str, np.ndarray]:
         module = modules.get(module_name)
         metadata = module["metadata"]
-        urls = module["metadata"]["urls"]
-        assert len(urls) > 0
-        instance_type = [instance_type for instance_type, _ in urls.items()][0]
+        module_type = metadata["type"]
+        if module_type == ModuleTypeSchema.TRITON:
+            urls = metadata["urls"]
+            assert len(urls) > 0
+            instance_type = [instance_type for instance_type, _ in urls.items()][0]
 
-        return await common.infer(module_name, inputs, instance_type=instance_type)
+            return await common.infer(module_name, inputs, instance_type=instance_type)
+        elif module_type == ModuleTypeSchema.BUILTIN:
+            return await common.infer(module_name, inputs)
+        else:
+            raise ValueError(f"Unknown module type {module_type}")
 
     async def start(self) -> None:
         pass

@@ -20,9 +20,9 @@ DATATYPES = [
 
 def to_numpy_dtype(datatype: str) -> Any:
     if datatype == "FP32":
-        np.float32
+        return np.float32
     elif datatype == "INT32":
-        np.int32
+        return np.int32
     else:
         raise Exception(f"Unsupported datatype {datatype}")
 
@@ -176,6 +176,7 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
         inputs: Dict[str, np.ndarray] = {}
         for name, input in schema.inputs.items():
             datatype = _metadata["inputs"][name]["datatype"]
+            # TODO: add reshape
             inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype))
 
         validate(inputs, _metadata)
