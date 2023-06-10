@@ -181,18 +181,22 @@ def crop_person_objects(  # type: ignore
     labels,
     result_dir=".",
     result_name="person",
-):
+) -> int:
     person_label = COCO_LABELS_LIST.index("person")
     person_boxes = [box for box, label in zip(boxes, labels) if label == person_label]
 
+    num_of_image = len(person_boxes)
+    np_image = np.array(image)
     for i, box in enumerate(person_boxes):
-        cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         x_min = int(box[0])
         y_min = int(box[1])
         x_max = int(box[2])
         y_max = int(box[3])
-        cropped_image = cv_image[y_min:y_max, x_min:x_max]
-        cv2.imwrite(os.path.join(result_dir, result_name + f"_{i}" + ".png"), cropped_image)
+        cropped_np_image = np_image[y_min:y_max, x_min:x_max]
+        cropped_cv_image = cv2.cvtColor(cropped_np_image, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(os.path.join(result_dir, result_name + f"_{i}" + ".png"), cropped_cv_image)
+
+    return num_of_image
 
 
 @respx.mock
@@ -347,7 +351,9 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
         result_path="./assets/FudanPed00054_result.png",
     )
 
-    crop_person_objects(
+    print("\n>> Result is visualized at ./assets/FudanPed00054_result.png << ", end="")
+
+    num_of_image = crop_person_objects(
         img_pil,
         pred_boxes,
         pred_labels,
@@ -355,7 +361,10 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
         result_name="FudanPed00054_person",
     )
 
-    print(">> Result is visualized at ./assets/FudanPed00054_result.png << ", end="")
+    print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
+    for i in range(num_of_image):
+        print(i, ", ", end="")
+    print("} << ")
 
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)
