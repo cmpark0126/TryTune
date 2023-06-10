@@ -3,9 +3,9 @@ from typing import Any, Dict
 import numpy as np
 
 from trytune.schemas.common import InferSchema
+from trytune.schemas.module import ModuleTypeSchema
 from trytune.services.moduels import modules
 import trytune.services.schedulers.common as common
-from trytune.schemas.module import ModuleTypeSchema
 
 
 class FifoScheduler(common.SchedulerInner):
