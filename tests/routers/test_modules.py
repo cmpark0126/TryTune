@@ -1,8 +1,105 @@
-from httpx import Response
-import respx
+import os
+
 from PIL import Image
-import torchvision.transforms as T
+import cv2
+from httpx import Response
 import numpy as np
+import respx
+import torchvision.transforms as T
+
+COCO_LABELS_LIST = [
+    "__background__",
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "airplane",
+    "bus",
+    "train",
+    "truck",
+    "boat",
+    "traffic light",
+    "fire hydrant",
+    "N/A",
+    "stop sign",
+    "parking meter",
+    "bench",
+    "bird",
+    "cat",
+    "dog",
+    "horse",
+    "sheep",
+    "cow",
+    "elephant",
+    "bear",
+    "zebra",
+    "giraffe",
+    "N/A",
+    "backpack",
+    "umbrella",
+    "N/A",
+    "N/A",
+    "handbag",
+    "tie",
+    "suitcase",
+    "frisbee",
+    "skis",
+    "snowboard",
+    "sports ball",
+    "kite",
+    "baseball bat",
+    "baseball glove",
+    "skateboard",
+    "surfboard",
+    "tennis racket",
+    "bottle",
+    "N/A",
+    "wine glass",
+    "cup",
+    "fork",
+    "knife",
+    "spoon",
+    "bowl",
+    "banana",
+    "apple",
+    "sandwich",
+    "orange",
+    "broccoli",
+    "carrot",
+    "hot dog",
+    "pizza",
+    "donut",
+    "cake",
+    "chair",
+    "couch",
+    "potted plant",
+    "bed",
+    "N/A",
+    "dining table",
+    "N/A",
+    "N/A",
+    "toilet",
+    "N/A",
+    "tv",
+    "laptop",
+    "mouse",
+    "remote",
+    "keyboard",
+    "cell phone",
+    "microwave",
+    "oven",
+    "toaster",
+    "sink",
+    "refrigerator",
+    "N/A",
+    "book",
+    "clock",
+    "vase",
+    "scissors",
+    "teddy bear",
+    "hair drier",
+    "toothbrush",
+]
 
 
 def visualize_detection_result(img_pil, boxes, labels, scores, result_path="result.png"):  # type: ignore
@@ -12,102 +109,8 @@ def visualize_detection_result(img_pil, boxes, labels, scores, result_path="resu
     labels : torch.Tensor, [num_obj] torch.int64
     scores : torch.Tensor, [num_obj] torch.float32
     """
-    import cv2
 
-    coco_labels_list = [
-        "__background__",
-        "person",
-        "bicycle",
-        "car",
-        "motorcycle",
-        "airplane",
-        "bus",
-        "train",
-        "truck",
-        "boat",
-        "traffic light",
-        "fire hydrant",
-        "N/A",
-        "stop sign",
-        "parking meter",
-        "bench",
-        "bird",
-        "cat",
-        "dog",
-        "horse",
-        "sheep",
-        "cow",
-        "elephant",
-        "bear",
-        "zebra",
-        "giraffe",
-        "N/A",
-        "backpack",
-        "umbrella",
-        "N/A",
-        "N/A",
-        "handbag",
-        "tie",
-        "suitcase",
-        "frisbee",
-        "skis",
-        "snowboard",
-        "sports ball",
-        "kite",
-        "baseball bat",
-        "baseball glove",
-        "skateboard",
-        "surfboard",
-        "tennis racket",
-        "bottle",
-        "N/A",
-        "wine glass",
-        "cup",
-        "fork",
-        "knife",
-        "spoon",
-        "bowl",
-        "banana",
-        "apple",
-        "sandwich",
-        "orange",
-        "broccoli",
-        "carrot",
-        "hot dog",
-        "pizza",
-        "donut",
-        "cake",
-        "chair",
-        "couch",
-        "potted plant",
-        "bed",
-        "N/A",
-        "dining table",
-        "N/A",
-        "N/A",
-        "toilet",
-        "N/A",
-        "tv",
-        "laptop",
-        "mouse",
-        "remote",
-        "keyboard",
-        "cell phone",
-        "microwave",
-        "oven",
-        "toaster",
-        "sink",
-        "refrigerator",
-        "N/A",
-        "book",
-        "clock",
-        "vase",
-        "scissors",
-        "teddy bear",
-        "hair drier",
-        "toothbrush",
-    ]
-    coco_labels_map = {k: v for v, k in enumerate(coco_labels_list)}
+    coco_labels_map = {k: v for v, k in enumerate(COCO_LABELS_LIST)}
     np.random.seed(1)
     coco_colors_array = np.random.randint(256, size=(91, 3)) / 255
 
@@ -170,6 +173,26 @@ def visualize_detection_result(img_pil, boxes, labels, scores, result_path="resu
     im_show = im_show * 255
     cv2.imwrite(result_path, im_show)
     return 0
+
+
+def crop_person_objects(  # type: ignore
+    image,
+    boxes,
+    labels,
+    result_dir=".",
+    result_name="person",
+):
+    person_label = COCO_LABELS_LIST.index("person")
+    person_boxes = [box for box, label in zip(boxes, labels) if label == person_label]
+
+    for i, box in enumerate(person_boxes):
+        cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        x_min = int(box[0])
+        y_min = int(box[1])
+        x_max = int(box[2])
+        y_max = int(box[3])
+        cropped_image = cv_image[y_min:y_max, x_min:x_max]
+        cv2.imwrite(os.path.join(result_dir, result_name + f"_{i}" + ".png"), cropped_image)
 
 
 @respx.mock
@@ -322,6 +345,14 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
         pred_labels,
         pred_scores,
         result_path="./assets/FudanPed00054_result.png",
+    )
+
+    crop_person_objects(
+        img_pil,
+        pred_boxes,
+        pred_labels,
+        result_dir="./assets",
+        result_name="FudanPed00054_person",
     )
 
     print(">> Result is visualized at ./assets/FudanPed00054_result.png << ", end="")
