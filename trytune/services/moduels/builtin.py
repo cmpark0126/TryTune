@@ -1,8 +1,9 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
+import torchvision.transforms as T
 
 from trytune.services.moduels.common import BuiltinModule
 
@@ -66,6 +67,84 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
         }
 
 
+class Crop(BuiltinModule):
+    async def initialize(self, args: Dict[str, Any]) -> None:
+        if "label" in args:
+            self.label: Optional[int] = int(args["label"])
+        else:
+            args["label"] = None
+            self.label = None
+
+        if "threshold" in args:
+            self.threshold = float(args["threshold"])
+        else:
+            args["threshold"] = 0.9
+            self.threshold = 0.9
+
+        if "max_nums" in args:
+            self.max_nums: Optional[int] = int(args["max_nums"])
+        else:
+            args["max_nums"] = None
+            self.max_nums = None
+
+        self.args = args
+        pass
+
+    async def execute(self, requests: Any) -> Any:
+        inputs = requests["inputs"]
+        image = inputs["IMAGE"]
+        boxes = inputs["BOXES"]
+        labels = inputs["LABELS"]
+        scores = inputs["SCORES"]
+
+        indices = scores >= self.threshold
+        pred_boxes = boxes[indices]
+        pred_labels = labels[indices]
+
+        if self.label is not None:
+            pred_boxes = [
+                box for box, label in zip(pred_boxes, pred_labels) if label == self.label
+            ]
+
+        # FIXME: remove transform after supporing dynamic pipelines
+        outputs = []
+        for i, box in enumerate(pred_boxes):
+            if self.max_nums is not None and i >= self.max_nums:
+                break
+            x_min = int(box[0])
+            y_min = int(box[1])
+            x_max = int(box[2])
+            y_max = int(box[3])
+            cropped = image[:, y_min:y_max, x_min:x_max]
+            outputs.append(cropped)
+
+        return {"outputs": {"CROPPED_IMAGES": np.stack(outputs)}}
+
+    def metadata(self) -> Dict[str, Any]:
+        if hasattr(self, "args"):
+            args = self.args
+        else:
+            args = {
+                "label": "Optional[int]",
+                "threshold": "Optional[int]",
+                "max_nums": "Optional[int]",
+            }
+
+        return {
+            "inputs": [
+                {"name": "IMAGE", "datatype": "FP32", "shape": [3, -1, -1]},
+                {"name": "BOXES", "datatype": "FP32", "shape": [-1, 4]},
+                {"name": "LABELS", "datatype": "FP32", "shape": [-1]},
+                {"name": "SCORES", "datatype": "FP32", "shape": [-1]},
+            ],
+            "outputs": [
+                {"name": "CROPPED_IMAGES", "datatype": "FP32", "shape": [-1, 3, -1, -1]},
+            ],
+            "args": args,
+            "max_batch_size": 0,
+        }
+
+
 # class NMS(BuiltinModule):
 #     """
 #     Non-maximum suppression
@@ -76,17 +155,6 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
 
 #     async def execute(self, requests: Any) -> Any:
 #         # If request has threshold, use it, otherwise use self.threshold
-#         raise NotImplementedError
-
-#     def metadata(self) -> Dict[str, Any]:
-#         raise NotImplementedError
-
-
-# class Crop(BuiltinModule):
-#     async def initialize(self, args: Dict[str, Any]) -> None:
-#         pass
-
-#     async def execute(self, requests: Any) -> Any:
 #         raise NotImplementedError
 
 #     def metadata(self) -> Dict[str, Any]:

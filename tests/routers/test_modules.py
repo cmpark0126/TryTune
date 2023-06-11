@@ -350,19 +350,48 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
         pred_scores,
         result_path="./assets/FudanPed00054_result.png",
     )
-
     print("\n>> Result is visualized at ./assets/FudanPed00054_result.png << ", end="")
 
-    num_of_image = crop_person_objects(
-        img_pil,
-        pred_boxes,
-        pred_labels,
-        result_dir="./assets",
-        result_name="FudanPed00054_person",
-    )
+    # Use Crop Builtin Module
+    module = "crop_module"
+    add_module_schema = {
+        "name": module,
+        "type": "builtin",
+        "builtin_args": {
+            "target": "Crop",
+            "threshold": threshold,
+            "label": 1,
+            "max_nums": 1,
+        },  # label 1 is person
+    }
+
+    response = client.post(f"/modules/add", json=add_module_schema)
+    assert response.status_code == 200, response.content
+    obtained_metadata = response.json()
+
+    # Crop Infer
+    infer_schema = {
+        "target": add_module_schema["name"],
+        "inputs": {
+            "IMAGE": {"data": img.numpy().tolist(), "shape": img.shape},
+            "BOXES": {"data": boxes.tolist(), "shape": boxes.shape},
+            "LABELS": {"data": labels.tolist(), "shape": labels.shape},
+            "SCORES": {"data": scores.tolist(), "shape": scores.shape},
+        },
+    }
+    response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
+    assert response.status_code == 200, response.content
+    result = response.json()
+
+    assert len(result) == len(obtained_metadata["outputs"])
+    assert "CROPPED_IMAGES" in result
+    cropped_images = np.array(result["CROPPED_IMAGES"])
 
     print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
-    for i in range(num_of_image):
+    for i in range(cropped_images.shape[0]):
+        cropped_np = np.transpose(cropped_images[i], (1, 2, 0)).astype(np.float32)
+        cropped_cv = cv2.cvtColor(cropped_np * 255, cv2.COLOR_RGB2BGR)
+        cv2.imwrite("./assets/FudanPed00054_person_" + f"{i}" + ".png", cropped_cv)
         print(i, ", ", end="")
     print(".png } << ")
 
