@@ -364,7 +364,7 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
     for i in range(num_of_image):
         print(i, ", ", end="")
-    print("} << ")
+    print(".png } << ")
 
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)
