@@ -1,10 +1,10 @@
 from typing import Any, Dict, Optional
 
+import cv2
 import numpy as np
 import torch
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
 
-from trytune.services.common import OutputTensors
 from trytune.services.moduels.common import BuiltinModule
 
 
@@ -40,9 +40,9 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
         batch_labels_np = np.stack(batch_labels)
         batch_scores_np = np.stack(batch_scores)
         outputs = {
-            "BOXES": OutputTensors(batch_boxes_np),
-            "LABELS": OutputTensors(batch_labels_np),
-            "SCORES": OutputTensors(batch_scores_np),
+            "BOXES": batch_boxes_np,
+            "LABELS": batch_labels_np,
+            "SCORES": batch_scores_np,
         }
 
         return {"outputs": outputs}
@@ -108,6 +108,8 @@ class Crop(BuiltinModule):
 
         # FIXME: remove transform after supporing dynamic pipelines
         outputs = []
+        whs = []
+        max_value = 0
         for i, box in enumerate(pred_boxes):
             if self.max_nums is not None and i >= self.max_nums:
                 break
@@ -118,7 +120,27 @@ class Crop(BuiltinModule):
             cropped = image[:, y_min:y_max, x_min:x_max]
             outputs.append(cropped)
 
-        return {"outputs": {"CROPPED_IMAGES": OutputTensors(outputs)}}
+            w = x_max - x_min
+            if max_value < w:
+                max_value = w
+            h = y_max - y_min
+            if max_value < h:
+                max_value = h
+            whs.append(np.array([w, h]))
+
+        _outputs = [
+            np.transpose(
+                cv2.resize(np.transpose(output, (1, 2, 0)), (max_value, max_value)), (2, 0, 1)
+            )
+            for output in outputs
+        ]
+
+        return {
+            "outputs": {
+                "CROPPED_IMAGES": np.stack(_outputs).astype(np.float32),
+                "WHS": np.stack(whs).astype(np.int32),
+            }
+        }
 
     def metadata(self) -> Dict[str, Any]:
         if hasattr(self, "args"):
@@ -138,7 +160,8 @@ class Crop(BuiltinModule):
                 {"name": "SCORES", "datatype": "FP32", "shape": [1, -1]},
             ],
             "outputs": [
-                {"name": "CROPPED_IMAGES", "datatype": "FP32", "shape": [3, -1, -1]},
+                {"name": "CROPPED_IMAGES", "datatype": "FP32", "shape": [-1, 3, -1, -1]},
+                {"name": "WHS", "datatype": "INT32", "shape": [-1, 2]},
             ],
             "args": args,
             "max_batch_size": 0,

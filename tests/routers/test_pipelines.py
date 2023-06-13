@@ -27,29 +27,42 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
     crop_module_metadata = response.json()
     print(crop_module_metadata)
 
-    # pipeline = "test_pipeline"
-    # add_pipeline_schema = {
-    #     "name": pipeline,
-    #     "tensors": {
-    #         "inputs": [{"name": "batch_image"}],
-    #         "outputs": [{"name": "cropped_images"}],
-    #         "interms": [{"name": "boxes"}, {"name": "labels"}, {"name": "scores"}],
-    #     },
-    #     "stages": [
-    #         {
-    #             "name": "classifier",
-    #             "module": "resnet50",
-    #             "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
-    #             "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
-    #         },
-    #         {
-    #             "name": "selector",
-    #             "module": "top_five",
-    #             "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
-    #             "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
-    #         },
-    #     ],
-    # }
+    pipeline = "test_pipeline"
+    add_pipeline_schema = {
+        "name": pipeline,
+        "tensors": {
+            "inputs": [{"name": "p_image"}],
+            "outputs": [{"name": "p_cropped_images"}],
+            "interms": [{"name": "p_boxes"}, {"name": "p_labels"}, {"name": "p_scores"}],
+        },
+        "stages": [
+            {
+                "name": "detector",
+                "module": "detection_module",
+                "inputs": [{"src": "BATCH_IMAGE", "tgt": "p_image"}],
+                "outputs": [
+                    {"src": "BOXES", "tgt": "p_boxes"},
+                    {"src": "LABELS", "tgt": "p_labels"},
+                    {"src": "SCORES", "tgt": "p_scores"},
+                ],
+            },
+            {
+                "name": "cropper",
+                "module": "Crop",
+                "inputs": [
+                    {"src": "IMAGE", "tgt": "p_image"},
+                    {"src": "BOXES", "tgt": "p_boxes"},
+                    {"src": "LABELS", "tgt": "p_labels"},
+                    {"src": "SCORES", "tgt": "p_scores"},
+                ],
+                "outputs": [{"src": "CROPPED_IMAGES", "tgt": "p_cropped_images"}],
+            },
+        ],
+    }
+
+    response = client.post("/pipelines/add", json=add_pipeline_schema)
+    assert response.status_code == 200, response.content
+    # pipeline_metadata = response.json()
 
     raise NotImplementedError
 

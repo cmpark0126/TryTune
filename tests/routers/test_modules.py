@@ -338,11 +338,11 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     # We only use the first image in the batch, and first dynamic output dimension
     assert len(result) == len(obtained_metadata["outputs"])
     assert "BOXES" in result
-    boxes = np.array(result["BOXES"])[0]
+    boxes = np.array(result["BOXES"])
     assert "LABELS" in result
-    labels = np.array(result["LABELS"])[0]
+    labels = np.array(result["LABELS"])
     assert "SCORES" in result
-    scores = np.array(result["SCORES"])[0]
+    scores = np.array(result["SCORES"])
 
     # We only keep the boxes with scores >= 0.9
     threshold = 0.9
@@ -393,11 +393,13 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     assert len(result) == len(obtained_metadata["outputs"])
     assert "CROPPED_IMAGES" in result
     cropped_images = result["CROPPED_IMAGES"]
+    whs = result["WHS"]
 
     print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
-    for i, cropped_image in enumerate(cropped_images):
+    for i, (cropped_image, wh) in enumerate(zip(cropped_images, whs)):
         cropped_np = np.transpose(np.array(cropped_image), (1, 2, 0)).astype(np.float32)
-        cropped_cv = cv2.cvtColor(cropped_np * 255, cv2.COLOR_RGB2BGR)
+        resized_cropped_np = cv2.resize(cropped_np, (wh[0], wh[1]))
+        cropped_cv = cv2.cvtColor(resized_cropped_np * 255, cv2.COLOR_RGB2BGR)
         cv2.imwrite("./assets/FudanPed00054_person_" + f"{i}" + ".png", cropped_cv)
         print(i, ", ", end="")
     print(".png } << ")
