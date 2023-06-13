@@ -3,8 +3,8 @@ from typing import Any, Dict, Optional
 import numpy as np
 import torch
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
-import torchvision.transforms as T
 
+from trytune.services.common import OutputTensor
 from trytune.services.moduels.common import BuiltinModule
 
 
@@ -40,9 +40,9 @@ class FasterRCNN_ResNet50_FPN(BuiltinModule):
         batch_labels_np = np.stack(batch_labels)
         batch_scores_np = np.stack(batch_scores)
         outputs = {
-            "BOXES": batch_boxes_np,
-            "LABELS": batch_labels_np,
-            "SCORES": batch_scores_np,
+            "BOXES": OutputTensor(batch_boxes_np),
+            "LABELS": OutputTensor(batch_labels_np),
+            "SCORES": OutputTensor(batch_scores_np),
         }
 
         return {"outputs": outputs}
@@ -118,7 +118,7 @@ class Crop(BuiltinModule):
             cropped = image[:, y_min:y_max, x_min:x_max]
             outputs.append(cropped)
 
-        return {"outputs": {"CROPPED_IMAGES": np.stack(outputs)}}
+        return {"outputs": {"CROPPED_IMAGES": OutputTensor(outputs)}}
 
     def metadata(self) -> Dict[str, Any]:
         if hasattr(self, "args"):
@@ -138,7 +138,7 @@ class Crop(BuiltinModule):
                 {"name": "SCORES", "datatype": "FP32", "shape": [-1]},
             ],
             "outputs": [
-                {"name": "CROPPED_IMAGES", "datatype": "FP32", "shape": [-1, 3, -1, -1]},
+                {"name": "CROPPED_IMAGES", "datatype": "FP32", "shape": [3, -1, -1]},
             ],
             "args": args,
             "max_batch_size": 0,

@@ -327,14 +327,14 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     assert response.status_code == 200, response.content
     result = response.json()
 
-    # We only use the first image in the batch
+    # We only use the first image in the batch, and first dynamic output dimension
     assert len(result) == len(obtained_metadata["outputs"])
     assert "BOXES" in result
-    boxes = np.array(result["BOXES"])[0]
+    boxes = np.array(result["BOXES"])[0][0]
     assert "LABELS" in result
-    labels = np.array(result["LABELS"])[0]
+    labels = np.array(result["LABELS"])[0][0]
     assert "SCORES" in result
-    scores = np.array(result["SCORES"])[0]
+    scores = np.array(result["SCORES"])[0][0]
 
     # We only keep the boxes with scores >= 0.9
     threshold = 0.9
@@ -360,9 +360,8 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
         "builtin_args": {
             "target": "Crop",
             "threshold": threshold,
-            "label": 1,
-            "max_nums": 1,
-        },  # label 1 is person
+            "label": 1,  # label 1 is person
+        },
     }
 
     response = client.post(f"/modules/add", json=add_module_schema)
@@ -385,11 +384,11 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
 
     assert len(result) == len(obtained_metadata["outputs"])
     assert "CROPPED_IMAGES" in result
-    cropped_images = np.array(result["CROPPED_IMAGES"])
+    cropped_images = result["CROPPED_IMAGES"]
 
     print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
-    for i in range(cropped_images.shape[0]):
-        cropped_np = np.transpose(cropped_images[i], (1, 2, 0)).astype(np.float32)
+    for i, cropped_image in enumerate(cropped_images):
+        cropped_np = np.transpose(np.array(cropped_image), (1, 2, 0)).astype(np.float32)
         cropped_cv = cv2.cvtColor(cropped_np * 255, cv2.COLOR_RGB2BGR)
         cv2.imwrite("./assets/FudanPed00054_person_" + f"{i}" + ".png", cropped_cv)
         print(i, ", ", end="")

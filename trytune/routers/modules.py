@@ -1,5 +1,5 @@
 import traceback
-from typing import Any, Dict, List
+from typing import Any, Dict, Union
 
 from fastapi import APIRouter, HTTPException
 import httpx
@@ -9,6 +9,7 @@ import tritonclient.http.aio as httpclient
 from trytune.schemas import common, module
 from trytune.services.moduels import modules
 from trytune.services.schedulers import scheduler
+from trytune.services.common import OutputTensor
 
 router = APIRouter()
 
@@ -133,30 +134,38 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
 
 # TODO: dynamic shape validation also needs to be done
 def validate(
-    tensors: Dict[str, np.ndarray], metadata: Dict[str, Any], use_dynamic_batching: bool
+    tensors: Union[Dict[str, np.ndarray], Dict[str, OutputTensor]],
+    metadata: Dict[str, Any],
+    use_dynamic_batching: bool,
 ) -> None:
-    for name, tensor in tensors.items():
-        datatype = to_numpy_dtype(metadata[name]["datatype"])
-        if tensor.dtype != datatype:
-            raise Exception(f"Tensor {name} datatype mismatch: {tensor.dtype} vs {datatype}")
-
-        if use_dynamic_batching:
-            tensor_shape = tensor.shape[1:]
+    for name, item in tensors.items():
+        if isinstance(item, OutputTensor):
+            _tensors = item.tensors
         else:
-            tensor_shape = tensor.shape
-        shape = metadata[name]["shape"]
-        if len(tensor_shape) != len(shape):
-            raise Exception(
-                f"Tensor {name} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
-            )
+            _tensors = [item]
 
-        for i in zip(tensor_shape, shape):
-            if i[1] == -1:
-                continue
-            if i[0] != i[1]:
+        datatype = to_numpy_dtype(metadata[name]["datatype"])
+        for i, tensor in enumerate(_tensors):
+            if tensor.dtype != datatype:
+                raise Exception(f"Tensor {name}:{i} datatype mismatch: {tensor.dtype} vs {datatype}")
+
+            if use_dynamic_batching:
+                tensor_shape = tensor.shape[1:]
+            else:
+                tensor_shape = tensor.shape
+            shape = metadata[name]["shape"]
+            if len(tensor_shape) != len(shape):
                 raise Exception(
-                    f"Tensor {name} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
+                    f"Tensor {name}:{i} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
                 )
+
+            for j in zip(tensor_shape, shape):
+                if j[1] == -1:
+                    continue
+                if j[0] != j[1]:
+                    raise Exception(
+                        f"Tensor {name}:{i} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
+                    )
     pass
 
 
