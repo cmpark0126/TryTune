@@ -6,13 +6,13 @@ import numpy as np
 import tritonclient.http.aio as httpclient
 
 from trytune.schemas.module import ModuleTypeSchema
-from trytune.services.common import OutputTensor
+from trytune.services.common import OutputTensors
 from trytune.services.moduels import modules
 
 
 class SchedulerInner(ABC):
     @abstractmethod
-    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, OutputTensor]:
+    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, OutputTensors]:
         raise NotImplementedError("infer is not implemented")
 
     @abstractmethod
@@ -40,7 +40,7 @@ async def infer_with_triton(
     module: Dict[str, Any],
     inputs: Dict[str, np.ndarray],
     url: str,
-) -> Dict[str, OutputTensor]:
+) -> Dict[str, OutputTensors]:
     """
     Request to triton server to infer the module with the given inputs.
 
@@ -82,10 +82,10 @@ async def infer_with_triton(
         outputs=infer_requested_outputs,
     )
 
-    outputs: Dict[str, OutputTensor] = {}
+    outputs: Dict[str, OutputTensors] = {}
     for output_metadata in module_metadata["outputs"]:
         name = output_metadata["name"]
-        outputs[name] = OutputTensor(result.as_numpy(name))
+        outputs[name] = OutputTensors(result.as_numpy(name))
 
     return outputs
 
@@ -94,7 +94,7 @@ async def infer_with_builtin(
     module_name: str,
     module: Dict[str, Any],
     inputs: Dict[str, np.ndarray],
-) -> Dict[str, OutputTensor]:
+) -> Dict[str, OutputTensors]:
     module_metadata = module["metadata"]
     for input_metadata in module_metadata["inputs"]:
         name = input_metadata["name"]
@@ -109,7 +109,7 @@ async def infer_with_builtin(
 
 async def infer(
     module_name: str, inputs: Dict[str, np.ndarray], **kwargs: Any
-) -> Dict[str, OutputTensor]:
+) -> Dict[str, OutputTensors]:
     module = modules.get(module_name)
     metadata = module["metadata"]
     module_type: ModuleTypeSchema = metadata["type"]

@@ -4,7 +4,7 @@ import numpy as np
 
 from trytune.schemas.common import InferSchema
 from trytune.schemas.module import ModuleTypeSchema
-from trytune.services.common import OutputTensor
+from trytune.services.common import OutputTensors
 from trytune.services.moduels import modules
 import trytune.services.schedulers.common as common
 
@@ -23,7 +23,7 @@ class FifoScheduler(common.SchedulerInner):
 
     async def infer(
         self, module_name: str, inputs: Dict[str, np.ndarray]
-    ) -> Dict[str, OutputTensor]:
+    ) -> Dict[str, OutputTensors]:
         module = modules.get(module_name)
         metadata = module["metadata"]
         module_type = metadata["type"]

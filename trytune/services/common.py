@@ -3,7 +3,7 @@ from typing import Any, List, Union
 import numpy as np
 
 
-class OutputTensor:
+class OutputTensors:
     def __init__(self, data: Union[np.ndarray, List[np.ndarray]]):
         if isinstance(data, list):
             self.tensors = data

@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 
-from trytune.services.common import OutputTensor
+from trytune.services.common import OutputTensors
 from trytune.services.schedulers import common, fifo
 
 
@@ -29,7 +29,7 @@ class Scheduler:
         self.inner = None
 
     # Return the output of the request as a list of DataSchema
-    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, OutputTensor]:
+    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, OutputTensors]:
         if self.inner is None:
             raise Exception("Scheduler inner is not set")
         return await self.inner.infer(module, inputs)

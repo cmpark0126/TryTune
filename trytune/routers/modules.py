@@ -9,7 +9,7 @@ import tritonclient.http.aio as httpclient
 from trytune.schemas import common, module
 from trytune.services.moduels import modules
 from trytune.services.schedulers import scheduler
-from trytune.services.common import OutputTensor
+from trytune.services.common import OutputTensors
 
 router = APIRouter()
 
@@ -134,12 +134,12 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
 
 # TODO: dynamic shape validation also needs to be done
 def validate(
-    tensors: Union[Dict[str, np.ndarray], Dict[str, OutputTensor]],
+    tensors: Union[Dict[str, np.ndarray], Dict[str, OutputTensors]],
     metadata: Dict[str, Any],
     use_dynamic_batching: bool,
 ) -> None:
     for name, item in tensors.items():
-        if isinstance(item, OutputTensor):
+        if isinstance(item, OutputTensors):
             _tensors = item.tensors
         else:
             _tensors = [item]
@@ -147,7 +147,9 @@ def validate(
         datatype = to_numpy_dtype(metadata[name]["datatype"])
         for i, tensor in enumerate(_tensors):
             if tensor.dtype != datatype:
-                raise Exception(f"Tensor {name}:{i} datatype mismatch: {tensor.dtype} vs {datatype}")
+                raise Exception(
+                    f"Tensor {name}:{i} datatype mismatch: {tensor.dtype} vs {datatype}"
+                )
 
             if use_dynamic_batching:
                 tensor_shape = tensor.shape[1:]
