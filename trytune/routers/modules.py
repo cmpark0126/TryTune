@@ -4,12 +4,11 @@ from typing import Any, Dict, Union
 from fastapi import APIRouter, HTTPException
 import httpx
 import numpy as np
-import tritonclient.http.aio as httpclient
 
 from trytune.schemas import common, module
+from trytune.services.common import OutputTensors
 from trytune.services.moduels import modules
 from trytune.services.schedulers import scheduler
-from trytune.services.common import OutputTensors
 
 router = APIRouter()
 
@@ -51,8 +50,8 @@ async def get_available_builtins() -> Any:
 @router.get("/modules/list")
 async def get_list() -> Any:
     data = {}
-    for name, module in modules.modules.items():
-        data[name] = module["metadata"]
+    for name, _module in modules.modules.items():
+        data[name] = _module["metadata"]
     return data
 
 
@@ -88,7 +87,8 @@ async def add_triton_module(schema: module.AddModuleSchema) -> Any:
             other = await get_metadata_from_url(schema.name, url)
         except Exception:
             raise HTTPException(
-                status_code=400, detail=f"While getting metadata: {traceback.format_exc()}"
+                status_code=400,
+                detail=f"While getting metadata: {traceback.format_exc()}",
             )
 
         if metadata != other:
@@ -233,7 +233,8 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
         validate(outputs, _metadata["outputs"], use_dynamic_batching)
     except Exception:
         raise HTTPException(
-            status_code=400, detail=f"While validating outputs: {traceback.format_exc()}"
+            status_code=400,
+            detail=f"While validating outputs: {traceback.format_exc()}",
         )
 
     response = {}
