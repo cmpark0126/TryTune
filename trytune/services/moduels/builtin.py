@@ -92,10 +92,10 @@ class Crop(BuiltinModule):
 
     async def execute(self, requests: Any) -> Any:
         inputs = requests["inputs"]
-        image = inputs["IMAGE"]
-        boxes = inputs["BOXES"]
-        labels = inputs["LABELS"]
-        scores = inputs["SCORES"]
+        image = inputs["IMAGE"][0]
+        boxes = inputs["BOXES"][0]
+        labels = inputs["LABELS"][0]
+        scores = inputs["SCORES"][0]
 
         indices = scores >= self.threshold
         pred_boxes = boxes[indices]
@@ -132,10 +132,10 @@ class Crop(BuiltinModule):
 
         return {
             "inputs": [
-                {"name": "IMAGE", "datatype": "FP32", "shape": [3, -1, -1]},
-                {"name": "BOXES", "datatype": "FP32", "shape": [-1, 4]},
-                {"name": "LABELS", "datatype": "FP32", "shape": [-1]},
-                {"name": "SCORES", "datatype": "FP32", "shape": [-1]},
+                {"name": "IMAGE", "datatype": "FP32", "shape": [1, 3, -1, -1]},
+                {"name": "BOXES", "datatype": "FP32", "shape": [1, -1, 4]},
+                {"name": "LABELS", "datatype": "FP32", "shape": [1, -1]},
+                {"name": "SCORES", "datatype": "FP32", "shape": [1, -1]},
             ],
             "outputs": [
                 {"name": "CROPPED_IMAGES", "datatype": "FP32", "shape": [3, -1, -1]},

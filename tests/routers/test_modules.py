@@ -338,18 +338,18 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     # We only use the first image in the batch, and first dynamic output dimension
     assert len(result) == len(obtained_metadata["outputs"])
     assert "BOXES" in result
-    boxes = np.array(result["BOXES"])[0][0]
+    boxes = np.array(result["BOXES"])[0]
     assert "LABELS" in result
-    labels = np.array(result["LABELS"])[0][0]
+    labels = np.array(result["LABELS"])[0]
     assert "SCORES" in result
-    scores = np.array(result["SCORES"])[0][0]
+    scores = np.array(result["SCORES"])[0]
 
     # We only keep the boxes with scores >= 0.9
     threshold = 0.9
-    indices = scores >= threshold
-    pred_boxes = boxes[indices]
-    pred_labels = labels[indices]
-    pred_scores = scores[indices]
+    indices = scores[0] >= threshold
+    pred_boxes = boxes[0][indices]
+    pred_labels = labels[0][indices]
+    pred_scores = scores[0][indices]
 
     viz_dtc_res(
         img_pil,
@@ -380,7 +380,7 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     infer_schema = {
         "target": add_module_schema["name"],
         "inputs": {
-            "IMAGE": {"data": img.numpy().tolist(), "shape": img.shape},
+            "IMAGE": {"data": batch_img.numpy().tolist(), "shape": batch_img.shape},
             "BOXES": {"data": boxes.tolist(), "shape": boxes.shape},
             "LABELS": {"data": labels.tolist(), "shape": labels.shape},
             "SCORES": {"data": scores.tolist(), "shape": scores.shape},
