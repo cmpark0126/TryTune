@@ -14,7 +14,15 @@ def client() -> TestClient:
     # To test the router, you need to include it in the app.
     app.include_router(modules.router)
     app.include_router(scheduler.router)
-    return TestClient(app)
+
+    _client = TestClient(app)
+    response = _client.delete("/modules/clear")
+    assert response.status_code == 200, response.content
+
+    # response = _client.delete("/pipelines/clear")
+    # assert response.status_code == 200, response.content
+
+    return _client
 
 
 @pytest.fixture
@@ -29,3 +37,13 @@ def add_module_schema() -> Dict[str, Any]:
             "g5.xlarge": "http://<address>:80/path/to/server",
         },
     }
+
+
+@pytest.fixture
+def add_module_schemas() -> Dict[str, Any]:
+    return {}
+
+
+@pytest.fixture
+def add_pipeline_schema() -> Dict[str, Any]:
+    return {}

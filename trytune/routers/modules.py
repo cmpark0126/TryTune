@@ -55,6 +55,12 @@ async def get_list() -> Any:
     return data
 
 
+@router.delete("/modules/clear")
+async def clear() -> Any:
+    modules.modules.clear()
+    return {"message": "Modules cleared"}
+
+
 # FIXME: we plan to use tritonclient.http.aio in the future
 async def get_metadata_from_url(module: str, url: str) -> Any:
     async with httpx.AsyncClient() as client:

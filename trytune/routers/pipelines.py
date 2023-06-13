@@ -1,10 +1,15 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from trytune.schemas import common
 
 router = APIRouter()
+
+
+@router.delete("/pipelines/clear")
+async def clear() -> Any:
+    raise HTTPException(status_code=501, detail="Not implemented")
 
 
 @router.get("/pipelines/{pipeline}")
