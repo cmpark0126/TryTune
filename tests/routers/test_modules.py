@@ -369,6 +369,7 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
             "target": "Crop",
             "threshold": threshold,
             "label": 1,  # label 1 is person
+            # "mode": "resize",
         },
     }
 
@@ -395,11 +396,12 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
     cropped_images = result["CROPPED_IMAGES"]
     whs = result["WHS"]
 
+    # NOTE: wh can be used to crop padding from cropped image
     print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
     for i, (cropped_image, wh) in enumerate(zip(cropped_images, whs)):
         cropped_np = np.transpose(np.array(cropped_image), (1, 2, 0)).astype(np.float32)
-        resized_cropped_np = cv2.resize(cropped_np, (wh[0], wh[1]))
-        cropped_cv = cv2.cvtColor(resized_cropped_np * 255, cv2.COLOR_RGB2BGR)
+        # cropped_np = cv2.resize(cropped_np, (wh[0], wh[1]))
+        cropped_cv = cv2.cvtColor(cropped_np * 255, cv2.COLOR_RGB2BGR)
         cv2.imwrite("./assets/FudanPed00054_person_" + f"{i}" + ".png", cropped_cv)
         print(i, ", ", end="")
     print(".png } << ")

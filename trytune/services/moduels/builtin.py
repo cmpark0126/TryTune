@@ -87,6 +87,12 @@ class Crop(BuiltinModule):
             args["max_nums"] = None
             self.max_nums = None
 
+        if "mode" in args:
+            self.mode: str = str(args["mode"])
+        else:
+            args["mode"] = "pad"
+            self.mode = "pad"
+
         self.args = args
         pass
 
@@ -109,7 +115,8 @@ class Crop(BuiltinModule):
         # FIXME: remove transform after supporing dynamic pipelines
         outputs = []
         whs = []
-        max_value = 0
+        max_w = 0
+        max_h = 0
         for i, box in enumerate(pred_boxes):
             if self.max_nums is not None and i >= self.max_nums:
                 break
@@ -121,19 +128,31 @@ class Crop(BuiltinModule):
             outputs.append(cropped)
 
             w = x_max - x_min
-            if max_value < w:
-                max_value = w
+            if max_w < w:
+                max_w = w
             h = y_max - y_min
-            if max_value < h:
-                max_value = h
+            if max_h < h:
+                max_h = h
             whs.append(np.array([w, h]))
 
-        _outputs = [
-            np.transpose(
-                cv2.resize(np.transpose(output, (1, 2, 0)), (max_value, max_value)), (2, 0, 1)
-            )
-            for output in outputs
-        ]
+        if self.mode == "pad":
+            _outputs = [
+                np.pad(
+                    output,
+                    ((0, 0), (0, max_h - output.shape[1]), (0, max_w - output.shape[2])),
+                    mode="constant",
+                )
+                for output in outputs
+            ]
+        elif self.mode == "resize":
+            _outputs = [
+                np.transpose(
+                    cv2.resize(np.transpose(output, (1, 2, 0)), (max_w, max_h)), (2, 0, 1)
+                )
+                for output in outputs
+            ]
+        else:
+            raise ValueError(f"Invalid mode {self.mode}")
 
         return {
             "outputs": {
@@ -150,6 +169,7 @@ class Crop(BuiltinModule):
                 "label": "Optional[int]",
                 "threshold": "Optional[int]",
                 "max_nums": "Optional[int]",
+                "mode": "pad or resize",
             }
 
         return {
