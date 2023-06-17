@@ -4,6 +4,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException
 import numpy as np
 
+from trytune.routers.common import infer_module
 from trytune.schemas import common, pipeline
 from trytune.services.moduels import modules
 from trytune.services.pipelines import pipelines
@@ -52,7 +53,13 @@ async def add_pipeline(schema: pipeline.AddPipelineSchema) -> Any:
                     status_code=400,
                     detail=f"Module {stage.module} output {output['name']} not found.",
                 )
-            output_tensors.add(stage.outputs[output["name"]])
+            tensor_name = stage.outputs[output["name"]]
+            if tensor_name in output_tensors:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Module {stage.module} output {output['name']} is already used.",
+                )
+            output_tensors.add(tensor_name)
 
     for input in schema.tensors.inputs:
         if input.name not in input_tensors:
@@ -124,6 +131,17 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
 
     # TODO: run all modules asynchronously
     for stage in metadata.stages:
-        print(stage.name)
+        inputs = {}
+        for src, dst in stage.inputs.items():
+            inputs[src] = tensors[dst]
 
-    return {"message": f"Pipeline {pipeline} inferred"}
+        outputs = await infer_module(stage.module, inputs)
+        for src, dst in stage.outputs.items():
+            assert dst not in tensors
+            tensors[dst] = outputs[src]
+
+    response = {}
+    for name in _metadata["outputs"].keys():
+        response[name] = tensors[name].tolist()
+
+    return response

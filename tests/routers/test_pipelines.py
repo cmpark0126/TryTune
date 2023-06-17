@@ -1,4 +1,6 @@
 from PIL import Image
+import cv2
+import numpy as np
 import torchvision.transforms as T
 
 
@@ -89,9 +91,22 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
     }
     response = client.post(f"/pipelines/{add_pipeline_schema['name']}/infer", json=infer_schema)
     assert response.status_code == 200, response.content
-    # result = response.json()
+    result = response.json()
 
-    raise NotImplementedError
+    assert "p_cropped_images" in result
+    assert "p_whs" in result
+    cropped_images = result["p_cropped_images"]
+    whs = result["p_whs"]
+
+    # NOTE: wh can be used to crop padding from cropped image
+    print("\n>> Result is cropped at ./assets/FudanPed00054_person_{ ", end="")
+    for i, (cropped_image, wh) in enumerate(zip(cropped_images, whs)):
+        cropped_np = np.transpose(np.array(cropped_image), (1, 2, 0)).astype(np.float32)
+        # cropped_np = cv2.resize(cropped_np, (wh[0], wh[1]))
+        cropped_cv = cv2.cvtColor(cropped_np * 255, cv2.COLOR_RGB2BGR)
+        cv2.imwrite("./assets/FudanPed00054_person_" + f"{i}" + ".png", cropped_cv)
+        print(i, ", ", end="")
+    print(".png } << ")
 
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)

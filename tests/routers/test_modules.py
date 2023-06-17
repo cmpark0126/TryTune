@@ -393,6 +393,7 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
 
     assert len(result) == len(obtained_metadata["outputs"])
     assert "CROPPED_IMAGES" in result
+    assert "WHS" in result
     cropped_images = result["CROPPED_IMAGES"]
     whs = result["WHS"]
 
