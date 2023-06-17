@@ -10,7 +10,6 @@ class TensorSchema(BaseModel):
 class TensorsSchema(BaseModel):
     inputs: List[TensorSchema]
     outputs: List[TensorSchema]
-    interms: List[TensorSchema]
 
 
 class StageIO(BaseModel):
@@ -40,7 +39,6 @@ class AddPipelineSchema(BaseModel):
             "tensors": {
                 "inputs": [{"name": "pinput__0"}],
                 "outputs": [{"name": "poutput__0"}],
-                "interms": [{"name": "pinterm__0"}],
             },
             # pinput__0    -> [classifier] -> pinterm__0          -> [selector] -> poutput__0
             # input_tensor -> [stage]      -> intermediate_tensor -> [stage]    -> output_tensor

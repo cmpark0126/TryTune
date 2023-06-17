@@ -10,7 +10,6 @@ def test_pipeline_add_schema() -> None:
         "tensors": {
             "inputs": [{"name": "pinput__0"}],
             "outputs": [{"name": "poutput__0"}],
-            "interms": [{"name": "pinterm__0"}],
         },
         # pinput__0    -> [classifier] -> pinterm__0          -> [selector] -> poutput__0
         # input_tensor -> [stage]      -> intermediate_tensor -> [stage]    -> output_tensor
@@ -42,8 +41,6 @@ def test_pipeline_add_schema() -> None:
     assert add_pipeline.tensors.inputs[0].name == "pinput__0"
     assert len(add_pipeline.tensors.outputs) == 1
     assert add_pipeline.tensors.outputs[0].name == "poutput__0"
-    assert len(add_pipeline.tensors.interms) == 1
-    assert add_pipeline.tensors.interms[0].name == "pinterm__0"
     assert len(add_pipeline.stages) == 2
     assert add_pipeline.stages[0].name == "classifier"
     assert add_pipeline.stages[0].module == "resnet50"
@@ -60,7 +57,6 @@ def test_pipeline_add_schema() -> None:
         "tensors": {
             "inputs": [{"name": "pinput__0"}],
             "outputs": [{"name": "poutput__0"}],
-            "interms": [{"name": "pinterm__0"}],
         },
         "stages": [
             {
@@ -68,34 +64,6 @@ def test_pipeline_add_schema() -> None:
                 "module": "resnet50",
                 # invalid field
                 "inputs": [{"src": "input__0"}],
-                "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
-            },
-            {
-                "name": "selector",
-                "module": "top_five",
-                "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
-                "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
-            },
-        ],
-    }
-
-    with pytest.raises(ValidationError):
-        AddPipelineSchema(**invalid_data)
-
-    # Test missing required field
-    invalid_data = {
-        "name": "pipe1",
-        "tensors": {
-            "inputs": [{"name": "pinput__0"}],
-            "outputs": [{"name": "poutput__0"}],
-            # invalid field
-            "tensors": [{"name": "pinterm__0"}],
-        },
-        "stages": [
-            {
-                "name": "classifier",
-                "module": "resnet50",
-                "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
                 "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
             },
             {
