@@ -4,7 +4,6 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException
 import numpy as np
 
-from trytune.routers.common import to_numpy_dtype
 from trytune.schemas import common, pipeline
 from trytune.services.moduels import modules
 from trytune.services.pipelines import pipelines
@@ -103,21 +102,21 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
         raise HTTPException(status_code=404, detail=f"Pipeline {pipeline} not found.")
 
     _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
+    for input in metadata.tensors.inputs:
+        _metadata["inputs"][input.name] = input
+    for output in metadata.tensors.outputs:
+        _metadata["outputs"][output.name] = output
+
     try:
-        for input in metadata["inputs"]:
-            _metadata["inputs"][input["name"]] = input
-        for output in metadata["outputs"]:
-            _metadata["outputs"][output["name"]] = output
-
-        inputs: Dict[str, Any] = {}
+        tensors: Dict[str, Any] = {}
         for name, input in schema.inputs.items():
-            datatype = _metadata["inputs"][name]["datatype"]
-            if input.shape is not None:
-                shape = input.shape
-            else:
-                shape = _metadata["inputs"][name]["shape"]
-
-            inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype)).reshape(shape)
+            tensors[name] = np.array(input.data)
+        for name in _metadata["inputs"].keys():
+            if name not in tensors:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Input tensor {name} not found.",
+                )
     except Exception:
         raise HTTPException(
             status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
