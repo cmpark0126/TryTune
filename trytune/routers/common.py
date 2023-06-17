@@ -1,6 +1,11 @@
+import traceback
 from typing import Any, Dict
 
+from fastapi import HTTPException
 import numpy as np
+
+from trytune.services.moduels import modules
+from trytune.services.schedulers import scheduler
 
 DATATYPES = [
     "FP32",
@@ -46,3 +51,52 @@ def validate(
                     f"Tensor {name} shape mismatch: {tensor_shape} vs {shape} on use_dynamic_batching {use_dynamic_batching}"
                 )
     pass
+
+
+async def infer_module(module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    try:
+        metadata = modules.get(module)["metadata"]
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Module {module} not found.")
+
+    if "max_batch_size" in metadata and metadata["max_batch_size"] > 0:
+        use_dynamic_batching = True
+    else:
+        use_dynamic_batching = False
+
+    _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
+    try:
+        for input in metadata["inputs"]:
+            _metadata["inputs"][input["name"]] = input
+        for output in metadata["outputs"]:
+            _metadata["outputs"][output["name"]] = output
+
+        _inputs: Dict[str, np.ndarray] = {}
+        for name, data in inputs.items():
+            datatype = _metadata["inputs"][name]["datatype"]
+            _inputs[name] = data.astype(to_numpy_dtype(datatype))
+
+        validate(
+            _inputs,
+            _metadata["inputs"],
+            use_dynamic_batching,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
+        )
+
+    try:
+        outputs = await scheduler.infer(module, _inputs)
+    except Exception:
+        raise HTTPException(status_code=400, detail=f"While infering: {traceback.format_exc()}")
+
+    try:
+        validate(outputs, _metadata["outputs"], use_dynamic_batching)
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail=f"While validating outputs: {traceback.format_exc()}",
+        )
+
+    return outputs

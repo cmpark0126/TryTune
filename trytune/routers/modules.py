@@ -1,14 +1,13 @@
 import traceback
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 import httpx
 import numpy as np
 
-from trytune.routers.common import DATATYPES, to_numpy_dtype, validate
+from trytune.routers.common import DATATYPES, infer_module
 from trytune.schemas import common, module
 from trytune.services.moduels import modules
-from trytune.services.schedulers import scheduler
 
 router = APIRouter()
 
@@ -139,56 +138,20 @@ async def infer(module: str, schema: common.InferSchema) -> Any:
             status_code=400,
             detail=f"Module {module} does not match the target inside the schema {schema.target}",
         )
+    inputs = {}
 
     try:
-        metadata = modules.get(module)["metadata"]
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Module {module} not found.")
-
-    if "max_batch_size" in metadata and metadata["max_batch_size"] > 0:
-        use_dynamic_batching = True
-    else:
-        use_dynamic_batching = False
-
-    _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
-    try:
-        for input in metadata["inputs"]:
-            _metadata["inputs"][input["name"]] = input
-        for output in metadata["outputs"]:
-            _metadata["outputs"][output["name"]] = output
-
-        inputs: Dict[str, np.ndarray] = {}
         for name, input in schema.inputs.items():
-            datatype = _metadata["inputs"][name]["datatype"]
+            data = np.array(input.data)
             if input.shape is not None:
-                shape = input.shape
-            else:
-                shape = _metadata["inputs"][name]["shape"]
-
-            inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype)).reshape(shape)
-
-        validate(
-            inputs,
-            _metadata["inputs"],
-            use_dynamic_batching,
-        )
+                data.reshape(input.shape)
+            inputs[name] = data
     except Exception:
         raise HTTPException(
-            status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
+            status_code=400, detail=f"While preparing inputs: {traceback.format_exc()}"
         )
 
-    try:
-        outputs = await scheduler.infer(module, inputs)
-    except Exception:
-        raise HTTPException(status_code=400, detail=f"While infering: {traceback.format_exc()}")
-
-    try:
-        validate(outputs, _metadata["outputs"], use_dynamic_batching)
-    except Exception:
-        raise HTTPException(
-            status_code=400,
-            detail=f"While validating outputs: {traceback.format_exc()}",
-        )
+    outputs = await infer_module(module, inputs)
 
     response = {}
     for name, output in outputs.items():
