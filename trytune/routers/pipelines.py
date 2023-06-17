@@ -1,7 +1,10 @@
-from typing import Any
+import traceback
+from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
+import numpy as np
 
+from trytune.routers.common import to_numpy_dtype
 from trytune.schemas import common, pipeline
 from trytune.services.moduels import modules
 from trytune.services.pipelines import pipelines
@@ -88,4 +91,40 @@ async def get_metadata(pipeline: str) -> Any:
 
 @router.post("/pipelines/{pipeline}/infer")
 async def infer(pipeline: str, schema: common.InferSchema) -> Any:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+    if pipeline != schema.target:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Pipeline {pipeline} does not match the target inside the schema {schema.target}",
+        )
+
+    try:
+        metadata = pipelines.get(pipeline)["metadata"]
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Pipeline {pipeline} not found.")
+
+    _metadata: Dict[str, Any] = {"inputs": {}, "outputs": {}}
+    try:
+        for input in metadata["inputs"]:
+            _metadata["inputs"][input["name"]] = input
+        for output in metadata["outputs"]:
+            _metadata["outputs"][output["name"]] = output
+
+        inputs: Dict[str, Any] = {}
+        for name, input in schema.inputs.items():
+            datatype = _metadata["inputs"][name]["datatype"]
+            if input.shape is not None:
+                shape = input.shape
+            else:
+                shape = _metadata["inputs"][name]["shape"]
+
+            inputs[name] = np.array(input.data, dtype=to_numpy_dtype(datatype)).reshape(shape)
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
+        )
+
+    # TODO: run all modules asynchronously
+    for stage in metadata.stages:
+        print(stage.name)
+
+    return {"message": f"Pipeline {pipeline} inferred"}

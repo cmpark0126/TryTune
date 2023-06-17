@@ -1,3 +1,7 @@
+from PIL import Image
+import torchvision.transforms as T
+
+
 def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
     detection_module = "detection_module"
     add_module_schema = {
@@ -8,8 +12,8 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
 
     response = client.post("/modules/add", json=add_module_schema)
     assert response.status_code == 200, response.content
-    detection_module_metadata = response.json()
-    print(detection_module_metadata)
+    # detection_module_metadata = response.json()
+    # print(detection_module_metadata)
 
     crop_module = "crop_module"
     add_module_schema = {
@@ -24,8 +28,8 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
 
     response = client.post("/modules/add", json=add_module_schema)
     assert response.status_code == 200, response.content
-    crop_module_metadata = response.json()
-    print(crop_module_metadata)
+    # crop_module_metadata = response.json()
+    # print(crop_module_metadata)
 
     pipeline = "test_pipeline"
     add_pipeline_schema = {
@@ -62,6 +66,30 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
     response = client.post("/pipelines/add", json=add_pipeline_schema)
     assert response.status_code == 200, response.content
     # pipeline_metadata = response.json()
+
+    # Set scheduler
+    scheduler_schema = {"name": "fifo", "config": {}}
+    response = client.post("/scheduler/set", json=scheduler_schema)
+    assert response.status_code == 200, response.content
+
+    # Load input image
+    img_pil = Image.open("./assets/FudanPed00054.png").convert("RGB")
+    transform = T.Compose([T.ToTensor()])
+    img = transform(img_pil)
+    batch_img = img.unsqueeze(0)
+
+    infer_schema = {
+        "target": add_pipeline_schema["name"],
+        "inputs": {
+            "p_image": {
+                "data": batch_img.numpy().tolist(),
+                "shape": batch_img.shape,
+            }
+        },
+    }
+    response = client.post(f"/pipelines/{add_pipeline_schema['name']}/infer", json=infer_schema)
+    assert response.status_code == 200, response.content
+    # result = response.json()
 
     raise NotImplementedError
 
