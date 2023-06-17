@@ -41,6 +41,7 @@ class AddPipelineSchema(BaseModel):
                 {
                     "name": "classifier",
                     "module": "resnet50",
+                    # TODO: input 각각에 대해 shape 정보 넣을 수 있도록 수정?
                     "inputs": {"input__0":"pinput__0"},
                     "outputs": {"output__0": "pinterm__0"},
                 },
