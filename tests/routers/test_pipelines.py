@@ -32,30 +32,29 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
         "name": pipeline,
         "tensors": {
             "inputs": [{"name": "p_image"}],
-            "outputs": [{"name": "p_cropped_images"}],
-            "interms": [{"name": "p_boxes"}, {"name": "p_labels"}, {"name": "p_scores"}],
+            "outputs": [{"name": "p_cropped_images"}, {"name": "p_whs"}],
         },
         "stages": [
             {
                 "name": "detector",
                 "module": "detection_module",
-                "inputs": [{"src": "BATCH_IMAGE", "tgt": "p_image"}],
-                "outputs": [
-                    {"src": "BOXES", "tgt": "p_boxes"},
-                    {"src": "LABELS", "tgt": "p_labels"},
-                    {"src": "SCORES", "tgt": "p_scores"},
-                ],
+                "inputs": {"BATCH_IMAGE": "p_image"},
+                "outputs": {
+                    "BOXES": "p_boxes",
+                    "LABELS": "p_labels",
+                    "SCORES": "p_scores",
+                },
             },
             {
                 "name": "cropper",
-                "module": "Crop",
-                "inputs": [
-                    {"src": "IMAGE", "tgt": "p_image"},
-                    {"src": "BOXES", "tgt": "p_boxes"},
-                    {"src": "LABELS", "tgt": "p_labels"},
-                    {"src": "SCORES", "tgt": "p_scores"},
-                ],
-                "outputs": [{"src": "CROPPED_IMAGES", "tgt": "p_cropped_images"}],
+                "module": "crop_module",
+                "inputs": {
+                    "IMAGE": "p_image",
+                    "BOXES": "p_boxes",
+                    "LABELS": "p_labels",
+                    "SCORES": "p_scores",
+                },
+                "outputs": {"CROPPED_IMAGES": "p_cropped_images", "WHS": "p_whs"},
             },
         ],
     }

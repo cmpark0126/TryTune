@@ -17,14 +17,14 @@ def test_pipeline_add_schema() -> None:
             {
                 "name": "classifier",
                 "module": "resnet50",
-                "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
-                "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
+                "inputs": {"input__0": "pinput__0"},
+                "outputs": {"output__0": "pinterm__0"},
             },
             {
                 "name": "selector",
                 "module": "top_five",
-                "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
-                "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
+                "inputs": {"input__0": "pinterm__0"},
+                "outputs": {"output__0": "poutput__0"},
             },
         ],
     }
@@ -45,11 +45,9 @@ def test_pipeline_add_schema() -> None:
     assert add_pipeline.stages[0].name == "classifier"
     assert add_pipeline.stages[0].module == "resnet50"
     assert len(add_pipeline.stages[0].inputs) == 1
-    assert add_pipeline.stages[0].inputs[0].src == "input__0"
-    assert add_pipeline.stages[0].inputs[0].tgt == "pinput__0"
+    assert add_pipeline.stages[0].inputs["input__0"] == "pinput__0"
     assert len(add_pipeline.stages[0].outputs) == 1
-    assert add_pipeline.stages[0].outputs[0].src == "output__0"
-    assert add_pipeline.stages[0].outputs[0].tgt == "pinterm__0"
+    assert add_pipeline.stages[0].outputs["output__0"] == "pinterm__0"
 
     # Test missing required field
     invalid_data = {
@@ -62,15 +60,14 @@ def test_pipeline_add_schema() -> None:
             {
                 "name": "classifier",
                 "module": "resnet50",
-                # invalid field
-                "inputs": [{"src": "input__0"}],
-                "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
+                "inputs": {"input__0": "pinput__0"},
+                # missing outputs
             },
             {
                 "name": "selector",
                 "module": "top_five",
-                "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
-                "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
+                "inputs": {"input__0": "pinterm__0"},
+                "outputs": {"output__0": "poutput__0"},
             },
         ],
     }

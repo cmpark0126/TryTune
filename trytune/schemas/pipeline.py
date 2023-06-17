@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from pydantic import BaseModel
 
@@ -12,16 +12,11 @@ class TensorsSchema(BaseModel):
     outputs: List[TensorSchema]
 
 
-class StageIO(BaseModel):
-    src: str
-    tgt: str
-
-
 class StageSchema(BaseModel):
     name: str
     module: str
-    inputs: List[StageIO]
-    outputs: List[StageIO]
+    inputs: Dict[str, str]
+    outputs: Dict[str, str]
 
 
 class AddPipelineSchema(BaseModel):
@@ -46,14 +41,14 @@ class AddPipelineSchema(BaseModel):
                 {
                     "name": "classifier",
                     "module": "resnet50",
-                    "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
-                    "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
+                    "inputs": {"input__0":"pinput__0"},
+                    "outputs": {"output__0": "pinterm__0"},
                 },
                 {
                     "name": "selector",
                     "module": "top_five",
-                    "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
-                    "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
+                    "inputs": {"input__0": "pinterm__0"},
+                    "outputs": {"output__0": "poutput__0"},
                 },
             ],
         }

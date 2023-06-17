@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 
-from trytune.routers import modules, scheduler
+from trytune.routers import modules, pipelines, scheduler
 
 
 @pytest.fixture
@@ -14,13 +14,14 @@ def client() -> TestClient:
     # To test the router, you need to include it in the app.
     app.include_router(modules.router)
     app.include_router(scheduler.router)
+    app.include_router(pipelines.router)
 
     _client = TestClient(app)
     response = _client.delete("/modules/clear")
     assert response.status_code == 200, response.content
 
-    # response = _client.delete("/pipelines/clear")
-    # assert response.status_code == 200, response.content
+    response = _client.delete("/pipelines/clear")
+    assert response.status_code == 200, response.content
 
     return _client
 
