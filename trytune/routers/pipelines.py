@@ -46,14 +46,14 @@ async def add_pipeline(schema: pipeline.AddPipelineSchema) -> Any:
                     status_code=400,
                     detail=f"Module {stage.module} input {input['name']} not found.",
                 )
-            input_tensors.add(stage.inputs[input["name"]])
+            input_tensors.add(stage.inputs[input["name"]].name)
         for output in module_metadata["outputs"]:
             if output["name"] not in stage.outputs:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Module {stage.module} output {output['name']} not found.",
                 )
-            tensor_name = stage.outputs[output["name"]]
+            tensor_name = stage.outputs[output["name"]].name
             if tensor_name in output_tensors:
                 raise HTTPException(
                     status_code=400,
@@ -133,12 +133,18 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
     for stage in metadata.stages:
         inputs = {}
         for src, dst in stage.inputs.items():
-            inputs[src] = tensors[dst]
+            data = tensors[dst.name]
+            if dst.shape is not None:
+                data.reshape(dst.shape)
+            inputs[src] = data
 
         outputs = await infer_module(stage.module, inputs)
         for src, dst in stage.outputs.items():
-            assert dst not in tensors
-            tensors[dst] = outputs[src]
+            assert dst.name not in tensors
+            data = outputs[src]
+            if dst.shape is not None:
+                data.reshape(dst.shape)
+            tensors[dst.name] = outputs[src]
 
     response = {}
     for name in _metadata["outputs"].keys():

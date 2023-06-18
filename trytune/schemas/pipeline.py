@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -12,11 +12,16 @@ class TensorsSchema(BaseModel):
     outputs: List[TensorSchema]
 
 
+class TargetSchema(BaseModel):
+    name: str
+    shape: Optional[List[int]] = None
+
+
 class StageSchema(BaseModel):
     name: str
     module: str
-    inputs: Dict[str, str]
-    outputs: Dict[str, str]
+    inputs: Dict[str, TargetSchema]
+    outputs: Dict[str, TargetSchema]
 
 
 class AddPipelineSchema(BaseModel):
@@ -41,15 +46,14 @@ class AddPipelineSchema(BaseModel):
                 {
                     "name": "classifier",
                     "module": "resnet50",
-                    # TODO: input 각각에 대해 shape 정보 넣을 수 있도록 수정?
-                    "inputs": {"input__0":"pinput__0"},
-                    "outputs": {"output__0": "pinterm__0"},
+                    "inputs": {"input__0":{"name": "pinput__0", "shape": [3, 224, 224]}},
+                    "outputs": {"output__0": {"name": "pinterm__0"}},
                 },
                 {
                     "name": "selector",
                     "module": "top_five",
-                    "inputs": {"input__0": "pinterm__0"},
-                    "outputs": {"output__0": "poutput__0"},
+                    "inputs": {"input__0": {"name": "pinterm__0"}},
+                    "outputs": {"output__0": {"name": "poutput__0"}},
                 },
             ],
         }

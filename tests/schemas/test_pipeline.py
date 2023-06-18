@@ -17,14 +17,14 @@ def test_pipeline_add_schema() -> None:
             {
                 "name": "classifier",
                 "module": "resnet50",
-                "inputs": {"input__0": "pinput__0"},
-                "outputs": {"output__0": "pinterm__0"},
+                "inputs": {"input__0": {"name": "pinput__0", "shape": [3, 224, 224]}},
+                "outputs": {"output__0": {"name": "pinterm__0"}},
             },
             {
                 "name": "selector",
                 "module": "top_five",
-                "inputs": {"input__0": "pinterm__0"},
-                "outputs": {"output__0": "poutput__0"},
+                "inputs": {"input__0": {"name": "pinterm__0"}},
+                "outputs": {"output__0": {"name": "poutput__0"}},
             },
         ],
     }
@@ -45,9 +45,11 @@ def test_pipeline_add_schema() -> None:
     assert add_pipeline.stages[0].name == "classifier"
     assert add_pipeline.stages[0].module == "resnet50"
     assert len(add_pipeline.stages[0].inputs) == 1
-    assert add_pipeline.stages[0].inputs["input__0"] == "pinput__0"
+    assert add_pipeline.stages[0].inputs["input__0"].name == "pinput__0"
+    assert add_pipeline.stages[0].inputs["input__0"].shape == [3, 224, 224]
     assert len(add_pipeline.stages[0].outputs) == 1
-    assert add_pipeline.stages[0].outputs["output__0"] == "pinterm__0"
+    assert add_pipeline.stages[0].outputs["output__0"].name == "pinterm__0"
+    assert add_pipeline.stages[0].outputs["output__0"].shape is None
 
     # Test missing required field
     invalid_data = {
@@ -60,14 +62,14 @@ def test_pipeline_add_schema() -> None:
             {
                 "name": "classifier",
                 "module": "resnet50",
-                "inputs": {"input__0": "pinput__0"},
-                # missing outputs
+                "inputs": {"input__0": {"name": "pinput__0", "shape": [3, 224, 224]}},
+                # missing required field `outputs`
             },
             {
                 "name": "selector",
                 "module": "top_five",
-                "inputs": {"input__0": "pinterm__0"},
-                "outputs": {"output__0": "poutput__0"},
+                "inputs": {"input__0": {"name": "pinterm__0"}},
+                "outputs": {"output__0": {"name": "poutput__0"}},
             },
         ],
     }

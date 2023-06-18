@@ -44,23 +44,26 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
             {
                 "name": "detector",
                 "module": "detection_module",
-                "inputs": {"BATCH_IMAGE": "p_image"},
+                "inputs": {"BATCH_IMAGE": {"name": "p_image"}},
                 "outputs": {
-                    "BOXES": "p_boxes",
-                    "LABELS": "p_labels",
-                    "SCORES": "p_scores",
+                    "BOXES": {"name": "p_boxes"},
+                    "LABELS": {"name": "p_labels"},
+                    "SCORES": {"name": "p_scores"},
                 },
             },
             {
                 "name": "cropper",
                 "module": "crop_module",
                 "inputs": {
-                    "IMAGE": "p_image",
-                    "BOXES": "p_boxes",
-                    "LABELS": "p_labels",
-                    "SCORES": "p_scores",
+                    "IMAGE": {"name": "p_image"},
+                    "BOXES": {"name": "p_boxes"},
+                    "LABELS": {"name": "p_labels"},
+                    "SCORES": {"name": "p_scores"},
                 },
-                "outputs": {"CROPPED_IMAGES": "p_cropped_images", "WHS": "p_whs"},
+                "outputs": {
+                    "CROPPED_IMAGES": {"name": "p_cropped_images"},
+                    "WHS": {"name": "p_whs"},
+                },
             },
         ],
     }
