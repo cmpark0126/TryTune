@@ -130,6 +130,8 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
         )
 
     # TODO: run all modules asynchronously
+    # TODO: if dynamic excution occurs, it divides multiple streams
+    # TODO: support buisness logic scripts
     for stage in metadata.stages:
         inputs = {}
         for src, dst in stage.inputs.items():
