@@ -11,7 +11,9 @@ from trytune.services.moduels import modules
 
 class SchedulerInner(ABC):
     @abstractmethod
-    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    async def infer(
+        self, module: str, inputs: Dict[str, np.ndarray]
+    ) -> Dict[str, np.ndarray]:
         raise NotImplementedError("infer is not implemented")
 
     @abstractmethod
@@ -63,7 +65,9 @@ async def infer_with_triton(
 
         # FIXME: numpy array is not supported yet
         # FIXME: various datatype in the future
-        data = np.array(inputs[name].data, dtype=get_numpy_dtype(datatype)).reshape(shape)
+        data = np.array(inputs[name].data, dtype=get_numpy_dtype(datatype)).reshape(
+            shape
+        )
         infer_input.set_data_from_numpy(data, binary_data=True)
         infer_inputs.append(infer_input)
 
@@ -74,7 +78,9 @@ async def infer_with_triton(
 
     # FIXME: use ssl to get security
     parsed_url = urlparse(url)
-    triton_client = httpclient.InferenceServerClient(url=parsed_url.netloc + parsed_url.path)
+    triton_client = httpclient.InferenceServerClient(
+        url=parsed_url.netloc + parsed_url.path
+    )
     result = await triton_client.infer(
         module_metadata["name"],
         inputs=infer_inputs,

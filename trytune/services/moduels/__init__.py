@@ -1,7 +1,7 @@
 import inspect
 from typing import Any, Dict
 
-from trytune.services.moduels import builtin, common
+from trytune.services.moduels import builtins, common
 
 
 # Class to store module metadatas and links to triton servers.
@@ -12,7 +12,7 @@ class Modules:
         # All builtin modules available in the system. But, not yet installed.
         self.available_builtins: Dict[str, Any] = {}
 
-        for name, obj in inspect.getmembers(builtin):
+        for name, obj in inspect.getmembers(builtins):
             if (
                 inspect.isclass(obj)
                 and issubclass(obj, common.BuiltinModule)

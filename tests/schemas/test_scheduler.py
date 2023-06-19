@@ -14,7 +14,9 @@ def test_set_scheduler_schema() -> None:
     try:
         set_scheduler = SetSchedulerSchema(**valid_data)
     except ValidationError as e:
-        assert False, f"Failed to create SetSchedulerSchema instance with valid data: {e}"
+        assert (
+            False
+        ), f"Failed to create SetSchedulerSchema instance with valid data: {e}"
 
     assert set_scheduler.name == "fifo"
     assert set_scheduler.config == {"use_dynamic_batching": "true"}

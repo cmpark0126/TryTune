@@ -13,3 +13,4 @@ aiohttp==3.8.4
 opencv-python==4.7.0.72
 torch==2.0.0
 torchvision==0.15.0
+python-multipart==0.0.6

@@ -33,7 +33,9 @@ def test_pipeline_add_schema() -> None:
     try:
         add_pipeline = AddPipelineSchema(**valid_data)
     except ValidationError as e:
-        assert False, f"Failed to create AddPipelineSchema instance with valid data: {e}"
+        assert (
+            False
+        ), f"Failed to create AddPipelineSchema instance with valid data: {e}"
 
     # Access schema fields
     assert add_pipeline.name == "pipe1"
