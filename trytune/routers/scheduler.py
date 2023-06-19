@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
-from typing import Any
 import traceback
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+
 from trytune.schemas.scheduler import SetSchedulerSchema
-from trytune.services.scheduler import scheduler
+from trytune.services.schedulers import scheduler
 
 router = APIRouter()
 
@@ -25,7 +27,8 @@ async def get_scheduler_metadata() -> Any:
         return scheduler.get_metadata()
     except Exception:
         raise HTTPException(
-            status_code=400, detail=f"While getting scheduler metadata: {traceback.format_exc()}"
+            status_code=400,
+            detail=f"While getting scheduler metadata: {traceback.format_exc()}",
         )
 
 
@@ -35,7 +38,8 @@ async def delete_scheduler() -> Any:
         await scheduler.delete_inner()
     except Exception:
         raise HTTPException(
-            status_code=400, detail=f"While deleting scheduler: {traceback.format_exc()}"
+            status_code=400,
+            detail=f"While deleting scheduler: {traceback.format_exc()}",
         )
 
     return {"message": "Scheduler deleted"}

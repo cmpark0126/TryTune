@@ -1,14 +1,17 @@
-import numpy as np
-from urllib.parse import urlparse
 from abc import ABC, abstractmethod
-from typing import Any, List, Dict
+from typing import Any, Dict, List
+from urllib.parse import urlparse
+
+import numpy as np
 import tritonclient.http.aio as httpclient
-from trytune.schemas.common import InferSchema, DataSchema
+
+from trytune.schemas.module import ModuleTypeSchema
+from trytune.services.moduels import modules
 
 
 class SchedulerInner(ABC):
     @abstractmethod
-    async def infer(self, schema: InferSchema) -> Dict[str, DataSchema]:
+    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
         raise NotImplementedError("infer is not implemented")
 
     @abstractmethod
@@ -32,12 +35,13 @@ def get_numpy_dtype(datatype: str) -> Any:
 
 
 async def infer_with_triton(
+    module_name: str,
+    module: Dict[str, Any],
+    inputs: Dict[str, np.ndarray],
     url: str,
-    model_metadata: Dict[str, Any],
-    inputs: Dict[str, DataSchema],
-) -> Dict[str, DataSchema]:
+) -> Dict[str, np.ndarray]:
     """
-    Request to triton server to infer the model with the given inputs.
+    Request to triton server to infer the module with the given inputs.
 
     References:
         https://github.com/triton-inference-server/client/blob/main/src/python/examples/simple_http_aio_infer_client.py
@@ -45,8 +49,13 @@ async def infer_with_triton(
     infer_inputs: List[httpclient.InferInput] = []
     infer_requested_outputs: List[httpclient.InferRequestedOutput] = []
 
-    for input_metadata in model_metadata["inputs"]:
+    module_metadata = module["metadata"]
+
+    for input_metadata in module_metadata["inputs"]:
         name = input_metadata["name"]
+        if name not in inputs:
+            raise ValueError(f"input {name} is not provided for module {module_name}")
+
         shape = input_metadata["shape"]
         datatype = input_metadata["datatype"]
 
@@ -58,7 +67,7 @@ async def infer_with_triton(
         infer_input.set_data_from_numpy(data, binary_data=True)
         infer_inputs.append(infer_input)
 
-    for output_metadata in model_metadata["outputs"]:
+    for output_metadata in module_metadata["outputs"]:
         name = output_metadata["name"]
         infer_requested_output = httpclient.InferRequestedOutput(name, binary_data=True)
         infer_requested_outputs.append(infer_requested_output)
@@ -67,15 +76,49 @@ async def infer_with_triton(
     parsed_url = urlparse(url)
     triton_client = httpclient.InferenceServerClient(url=parsed_url.netloc + parsed_url.path)
     result = await triton_client.infer(
-        model_metadata["name"],
+        module_metadata["name"],
         inputs=infer_inputs,
         outputs=infer_requested_outputs,
     )
 
-    outputs: Dict[str, DataSchema] = {}
-    for output_metadata in model_metadata["outputs"]:
+    outputs: Dict[str, np.ndarray] = {}
+    for output_metadata in module_metadata["outputs"]:
         name = output_metadata["name"]
-        output = result.as_numpy(name).tolist()
-        outputs[name] = DataSchema(data=output)
+        outputs[name] = result.as_numpy(name)
 
     return outputs
+
+
+async def infer_with_builtin(
+    module_name: str,
+    module: Dict[str, Any],
+    inputs: Dict[str, np.ndarray],
+) -> Dict[str, np.ndarray]:
+    module_metadata = module["metadata"]
+    for input_metadata in module_metadata["inputs"]:
+        name = input_metadata["name"]
+        if name not in inputs:
+            raise ValueError(f"input {name} is not provided for module {module_name}")
+
+    instance = module["instance"]
+    request = {"inputs": inputs}
+    response = await instance.execute(request)
+    return response["outputs"]
+
+
+async def infer(
+    module_name: str, inputs: Dict[str, np.ndarray], **kwargs: Any
+) -> Dict[str, np.ndarray]:
+    module = modules.get(module_name)
+    metadata = module["metadata"]
+    module_type: ModuleTypeSchema = metadata["type"]
+    if module_type == ModuleTypeSchema.TRITON:
+        if "instance_type" not in kwargs:
+            raise ValueError("instance_type should not be None for triton module")
+
+        url = metadata["urls"][kwargs["instance_type"]]
+        return await infer_with_triton(module_name, module, inputs, url)
+    elif module_type == ModuleTypeSchema.BUILTIN:
+        return await infer_with_builtin(module_name, module, inputs)
+    else:
+        raise ValueError(f"module type {module_type} is not supported")

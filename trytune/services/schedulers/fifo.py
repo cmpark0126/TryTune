@@ -1,8 +1,10 @@
-from typing import Any, Dict, List
-import tritonclient.http.aio as httpclient
-from trytune.schemas.common import InferSchema, DataSchema
+from typing import Any, Dict
+
+import numpy as np
+
+from trytune.schemas.module import ModuleTypeSchema
+from trytune.services.moduels import modules
 import trytune.services.schedulers.common as common
-from trytune.services.models import models
 
 
 class FifoScheduler(common.SchedulerInner):
@@ -17,17 +19,22 @@ class FifoScheduler(common.SchedulerInner):
         self.config = config
         pass
 
-    async def infer(self, schema: InferSchema) -> Dict[str, common.DataSchema]:
-        model = models.get(schema.target)
+    async def infer(
+        self, module_name: str, inputs: Dict[str, np.ndarray]
+    ) -> Dict[str, np.ndarray]:
+        module = modules.get(module_name)
+        metadata = module["metadata"]
+        module_type = metadata["type"]
+        if module_type == ModuleTypeSchema.TRITON:
+            urls = metadata["urls"]
+            assert len(urls) > 0
+            instance_type = [instance_type for instance_type, _ in urls.items()][0]
 
-        metadata = model["metadata"]
-        urls = model["metadata"]["urls"]
-        assert len(urls) > 0
-        instance_types = [instance_type for instance_type, _ in urls.items()]
-        # TODO: use round robin to schedule the requests
-        url = urls[instance_types[0]]
-
-        return await common.infer_with_triton(url, metadata, schema.inputs)
+            return await common.infer(module_name, inputs, instance_type=instance_type)
+        elif module_type == ModuleTypeSchema.BUILTIN:
+            return await common.infer(module_name, inputs)
+        else:
+            raise ValueError(f"Unknown module type {module_type}")
 
     async def start(self) -> None:
         pass

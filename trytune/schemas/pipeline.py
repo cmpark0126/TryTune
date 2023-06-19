@@ -1,5 +1,6 @@
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel
-from typing import List
 
 
 class TensorSchema(BaseModel):
@@ -9,19 +10,18 @@ class TensorSchema(BaseModel):
 class TensorsSchema(BaseModel):
     inputs: List[TensorSchema]
     outputs: List[TensorSchema]
-    interms: List[TensorSchema]
 
 
-class StageIO(BaseModel):
-    src: str
-    tgt: str
+class TargetSchema(BaseModel):
+    name: str
+    shape: Optional[List[int]] = None
 
 
 class StageSchema(BaseModel):
     name: str
-    model: str
-    inputs: List[StageIO]
-    outputs: List[StageIO]
+    module: str
+    inputs: Dict[str, TargetSchema]
+    outputs: Dict[str, TargetSchema]
 
 
 class AddPipelineSchema(BaseModel):
@@ -31,7 +31,7 @@ class AddPipelineSchema(BaseModel):
     Attributes:
         name (str): The name of the pipeline.
         tensors (dict): Dictionary containing input and output tensors information.
-        models (list): List of model information.
+        modules (list): List of module information.
 
     Example:
         {
@@ -39,22 +39,21 @@ class AddPipelineSchema(BaseModel):
             "tensors": {
                 "inputs": [{"name": "pinput__0"}],
                 "outputs": [{"name": "poutput__0"}],
-                "interms": [{"name": "pinterm__0"}],
             },
             # pinput__0    -> [classifier] -> pinterm__0          -> [selector] -> poutput__0
             # input_tensor -> [stage]      -> intermediate_tensor -> [stage]    -> output_tensor
             "stages": [
                 {
                     "name": "classifier",
-                    "model": "resnet50",
-                    "inputs": [{"src": "input__0", "tgt": "pinput__0"}],
-                    "outputs": [{"src": "output__0", "tgt": "pinterm__0"}],
+                    "module": "resnet50",
+                    "inputs": {"input__0":{"name": "pinput__0", "shape": [3, 224, 224]}},
+                    "outputs": {"output__0": {"name": "pinterm__0"}},
                 },
                 {
                     "name": "selector",
-                    "model": "top_five",
-                    "inputs": [{"src": "input__0", "tgt": "pinterm__0"}],
-                    "outputs": [{"src": "output__0", "tgt": "poutput__0"}],
+                    "module": "top_five",
+                    "inputs": {"input__0": {"name": "pinterm__0"}},
+                    "outputs": {"output__0": {"name": "poutput__0"}},
                 },
             ],
         }

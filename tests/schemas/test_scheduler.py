@@ -1,5 +1,6 @@
-import pytest
 from pydantic import ValidationError
+import pytest
+
 from trytune.schemas.scheduler import SetSchedulerSchema
 
 
