@@ -140,7 +140,9 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
                 data.reshape(dst.shape)
             inputs[src] = data
 
+        # Execute the module
         outputs = await infer_module(stage.module, inputs)
+
         for src, dst in stage.outputs.items():
             assert dst.name not in tensors
             data = outputs[src]
