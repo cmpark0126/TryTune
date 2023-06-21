@@ -3,7 +3,7 @@ import numpy as np
 import requests
 import torchvision.transforms as T
 
-YOUR_API_URL = "http://k8s-ingressn-ingressn-2b93fe03d8-04a48eb3d7fe8535.elb.us-east-1.amazonaws.com:80/trytune"
+YOUR_API_URL = "http://0.0.0.0:80"
 
 if __name__ == "__main__":
     # response = requests.delete(YOUR_API_URL + "/bls/clear")
