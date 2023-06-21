@@ -6,8 +6,8 @@ import torchvision.transforms as T
 YOUR_API_URL = "http://0.0.0.0:80"
 
 if __name__ == "__main__":
-    # response = requests.delete(YOUR_API_URL + "/bls/clear")
-    # assert response.status_code == 200, response.content
+    response = requests.delete(YOUR_API_URL + "/bls/clear")
+    assert response.status_code == 200, response.content
     response = requests.delete(YOUR_API_URL + "/modules/clear")
     assert response.status_code == 200, response.content
 
