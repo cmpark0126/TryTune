@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 from typing import Any, Dict
 
@@ -31,7 +32,9 @@ def validate(
     for name, tensor in tensors.items():
         datatype = to_numpy_dtype(metadata[name]["datatype"])
         if tensor.dtype != datatype:
-            raise Exception(f"Tensor {name} datatype mismatch: {tensor.dtype} vs {datatype}")
+            raise Exception(
+                f"Tensor {name} datatype mismatch: {tensor.dtype} vs {datatype}"
+            )
 
         if use_dynamic_batching:
             tensor_shape = tensor.shape[1:]
@@ -53,7 +56,9 @@ def validate(
     pass
 
 
-async def infer_module(module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+async def infer_module(
+    module: str, inputs: Dict[str, np.ndarray]
+) -> Dict[str, np.ndarray]:
     try:
         metadata = modules.get(module)["metadata"]
     except KeyError:
@@ -89,7 +94,9 @@ async def infer_module(module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, 
     try:
         outputs = await scheduler.infer(module, _inputs)
     except Exception:
-        raise HTTPException(status_code=400, detail=f"While infering: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=400, detail=f"While infering: {traceback.format_exc()}"
+        )
 
     try:
         validate(outputs, _metadata["outputs"], use_dynamic_batching)
@@ -100,3 +107,18 @@ async def infer_module(module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, 
         )
 
     return outputs
+
+
+async def infer_module_with_async_queue(
+    module: str,
+    inputs: Dict[str, np.ndarray],
+    output_map: Dict[str, Any],
+    queue: asyncio.Queue,
+) -> None:
+    outputs = await infer_module(module, inputs)
+
+    for src, dst in output_map.items():
+        data = outputs[src]
+        if "shape" in dst:
+            data.reshape(dst["shape"])
+        await queue.put({"name": dst["name"], "tensor": data})

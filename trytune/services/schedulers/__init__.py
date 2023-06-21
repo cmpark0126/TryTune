@@ -12,6 +12,7 @@ class Scheduler:
     async def set_inner(self, scheduler: str, config: Dict[str, Any]) -> None:
         if scheduler == "fifo":
             self.inner = fifo.FifoScheduler(config)
+            assert self.inner is not None
             await self.inner.start()
         else:
             raise Exception(f"Scheduler {scheduler} is not supported")
@@ -28,7 +29,9 @@ class Scheduler:
         self.inner = None
 
     # Return the output of the request as a list of DataSchema
-    async def infer(self, module: str, inputs: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    async def infer(
+        self, module: str, inputs: Dict[str, np.ndarray]
+    ) -> Dict[str, np.ndarray]:
         if self.inner is None:
             raise Exception("Scheduler inner is not set")
         return await self.inner.infer(module, inputs)

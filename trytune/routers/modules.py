@@ -120,7 +120,9 @@ async def add_module(schema: module.AddModuleSchema) -> Any:
     elif schema.type == module.ModuleTypeSchema.BUILTIN:
         return await add_builtin_module(schema)
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported module type {schema.type}")
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported module type {schema.type}"
+        )
 
 
 @router.get("/modules/{module}/metadata")

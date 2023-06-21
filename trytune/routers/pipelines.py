@@ -1,10 +1,11 @@
+import asyncio
 import traceback
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
 import numpy as np
 
-from trytune.routers.common import infer_module
+from trytune.routers.common import infer_module_with_async_queue
 from trytune.schemas import common, pipeline
 from trytune.services.moduels import modules
 from trytune.services.pipelines import pipelines
@@ -30,14 +31,18 @@ async def clear() -> Any:
 async def add_pipeline(schema: pipeline.AddPipelineSchema) -> Any:
     # Check if the pipeline name is already in use
     if schema.name in pipelines.pipelines:
-        raise HTTPException(status_code=400, detail=f"Pipeline {schema.name} already exists.")
+        raise HTTPException(
+            status_code=400, detail=f"Pipeline {schema.name} already exists."
+        )
 
     # FIXME: check if the pipeline is valid
     input_tensors = set()
     output_tensors = set()
     for stage in schema.stages:
         if stage.module not in modules.modules:
-            raise HTTPException(status_code=400, detail=f"Module {stage.module} not found.")
+            raise HTTPException(
+                status_code=400, detail=f"Module {stage.module} not found."
+            )
 
         module_metadata = modules.modules[stage.module]["metadata"]
         for input in module_metadata["inputs"]:
@@ -114,12 +119,14 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
     for output in metadata.tensors.outputs:
         _metadata["outputs"][output.name] = output
 
+    queue = asyncio.Queue()  # type: ignore
     try:
-        tensors: Dict[str, Any] = {}
+        names = []
         for name, input in schema.inputs.items():
-            tensors[name] = np.array(input.data)
+            await queue.put({"name": name, "tensor": np.array(input.data)})
+            names.append(name)
         for name in _metadata["inputs"].keys():
-            if name not in tensors:
+            if name not in names:
                 raise HTTPException(
                     status_code=400,
                     detail=f"Input tensor {name} not found.",
@@ -129,26 +136,46 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
             status_code=400, detail=f"While validating inputs: {traceback.format_exc()}"
         )
 
-    # TODO: run all modules asynchronously
     # TODO: if dynamic excution occurs, it divides multiple streams
-    # TODO: support buisness logic scripts
-    for stage in metadata.stages:
-        inputs = {}
-        for src, dst in stage.inputs.items():
-            data = tensors[dst.name]
-            if dst.shape is not None:
-                data.reshape(dst.shape)
-            inputs[src] = data
+    tracking = {stage.name: False for stage in metadata.stages}
+    tensors: Dict[str, Any] = {}
+    while True:
+        event = await queue.get()
+        assert event["name"] not in tensors
+        tensors[event["name"]] = event["tensor"]
 
-        # Execute the module
-        outputs = await infer_module(stage.module, inputs)
+        for stage in metadata.stages:
+            if tracking[stage.name]:
+                continue
+            if not all([dst.name in tensors for dst in stage.inputs.values()]):
+                continue
 
-        for src, dst in stage.outputs.items():
-            assert dst.name not in tensors
-            data = outputs[src]
-            if dst.shape is not None:
-                data.reshape(dst.shape)
-            tensors[dst.name] = outputs[src]
+            inputs = {}
+            for src, dst in stage.inputs.items():
+                data = tensors[dst.name]
+                if dst.shape is not None:
+                    data.reshape(dst.shape)
+                inputs[src] = data
+            outputs = {}
+            for src, dst in stage.outputs.items():
+                data = {}
+                data["name"] = dst.name
+                if dst.shape is not None:
+                    data["shape"] = dst.shape
+                outputs[src] = data
+
+            # Execute the module with async queue
+            asyncio.create_task(
+                infer_module_with_async_queue(stage.module, inputs, outputs, queue)
+            )
+
+            tracking[stage.name] = True
+
+        is_output_prepared = all(
+            [name in tensors for name in _metadata["outputs"].keys()]
+        )
+        if all(tracking.values()) and is_output_prepared:
+            break
 
     response = {}
     for name in _metadata["outputs"].keys():

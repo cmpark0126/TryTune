@@ -120,7 +120,6 @@ def viz_dtc_res(img_pil, boxes, labels, scores, result_path):  # type: ignore
     im_show = cv2.cvtColor(x_img, cv2.COLOR_RGB2BGR)
 
     for j in range(len(boxes)):
-
         label_list = list(coco_labels_map.keys())
         color_array = coco_colors_array
 
@@ -194,7 +193,9 @@ def crop_person_objects(  # type: ignore
         y_max = int(box[3])
         cropped_np_image = np_image[y_min:y_max, x_min:x_max]
         cropped_cv_image = cv2.cvtColor(cropped_np_image, cv2.COLOR_RGB2BGR)
-        cv2.imwrite(os.path.join(result_dir, result_name + f"_{i}" + ".png"), cropped_cv_image)
+        cv2.imwrite(
+            os.path.join(result_dir, result_name + f"_{i}" + ".png"), cropped_cv_image
+        )
 
     return num_of_image
 
@@ -215,7 +216,9 @@ def test_modules_scenario(client) -> None:  # type: ignore
     assert response.status_code == 404, response.content
 
     # Add module with no urls
-    response = client.post("/modules/add", json={"name": module, "type": "triton", "urls": {}})
+    response = client.post(
+        "/modules/add", json={"name": module, "type": "triton", "urls": {}}
+    )
     assert response.status_code == 422, response.content
 
     # Mock the response from the triton server
@@ -331,7 +334,9 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
             }
         },
     }
-    response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
+    response = client.post(
+        f"/modules/{add_module_schema['name']}/infer", json=infer_schema
+    )
     assert response.status_code == 200, response.content
     result = response.json()
 
@@ -387,7 +392,9 @@ def test_builtin_modules_scenario(client) -> None:  # type: ignore
             "SCORES": {"data": scores.tolist(), "shape": scores.shape},
         },
     }
-    response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
+    response = client.post(
+        f"/modules/{add_module_schema['name']}/infer", json=infer_schema
+    )
     assert response.status_code == 200, response.content
     result = response.json()
 
@@ -437,7 +444,9 @@ def test_modules_scenario_on_k8s(client, add_module_schema) -> None:  # type: ig
         "target": add_module_schema["name"],
         "inputs": {"input__0": {"data": img.numpy().tolist()}},
     }
-    response = client.post(f"/modules/{add_module_schema['name']}/infer", json=infer_schema)
+    response = client.post(
+        f"/modules/{add_module_schema['name']}/infer", json=infer_schema
+    )
     assert response.status_code == 200, response.content
     result = response.json()
 

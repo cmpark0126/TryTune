@@ -71,7 +71,8 @@ class AddModuleSchema(BaseModel):
                 raise ValueError("urls should not be empty for triton module")
 
             cond = all(
-                url.startswith("http://") or url.startswith("https://") for url in urls.values()
+                url.startswith("http://") or url.startswith("https://")
+                for url in urls.values()
             )
             if not cond:
                 raise ValueError("all urls should start with http:// or https://")

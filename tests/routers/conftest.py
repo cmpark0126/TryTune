@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 
-from trytune.routers import modules, pipelines, scheduler
+from trytune.routers import bls, modules, pipelines, scheduler
 
 
 @pytest.fixture
@@ -15,6 +15,7 @@ def client() -> TestClient:
     app.include_router(modules.router)
     app.include_router(scheduler.router)
     app.include_router(pipelines.router)
+    app.include_router(bls.router)
 
     _client = TestClient(app)
     response = _client.delete("/modules/clear")

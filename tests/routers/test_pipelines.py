@@ -4,7 +4,7 @@ import numpy as np
 import torchvision.transforms as T
 
 
-def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
+def test_pipelines_scenario(client) -> None:  # type: ignore
     detection_module = "detection_module"
     add_module_schema = {
         "name": detection_module,
@@ -92,7 +92,9 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
             }
         },
     }
-    response = client.post(f"/pipelines/{add_pipeline_schema['name']}/infer", json=infer_schema)
+    response = client.post(
+        f"/pipelines/{add_pipeline_schema['name']}/infer", json=infer_schema
+    )
     assert response.status_code == 200, response.content
     result = response.json()
 
@@ -114,5 +116,5 @@ def test_pipelines_scenario_scenario(client) -> None:  # type: ignore
 
 # TODO: add more scenarios for testing (e.g., classification, object detection, etc.)
 # For testing on k8s
-def test_pipelines_scenario_scenario_on_k8s(client, add_module_schemas, add_pipeline_schema) -> None:  # type: ignore
+def test_pipelines_scenario_on_k8s(client, add_module_schemas, add_pipeline_schema) -> None:  # type: ignore
     pass

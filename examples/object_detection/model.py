@@ -2,7 +2,10 @@ import json
 
 import numpy as np
 import torch
-from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights, fasterrcnn_resnet50_fpn
+from torchvision.models.detection import (
+    FasterRCNN_ResNet50_FPN_Weights,
+    fasterrcnn_resnet50_fpn,
+)
 import triton_python_backend_utils as pb_utils  # type: ignore
 
 
@@ -51,13 +54,19 @@ class TritonPythonModel:
             # objects to create pb_utils.InferenceResponse.
             # FIXME: Optimize in the future to avoid unnecessary copy
             batch_boxes_np = np.stack(batch_boxes)
-            batch_boxes_pb = pb_utils.Tensor("BOXES", batch_boxes_np.astype(self.boxes_dtype))
+            batch_boxes_pb = pb_utils.Tensor(
+                "BOXES", batch_boxes_np.astype(self.boxes_dtype)
+            )
 
             batch_labels_np = np.stack(batch_labels)
-            batch_labels_pb = pb_utils.Tensor("LABELS", batch_labels_np.astype(self.labels_dtype))
+            batch_labels_pb = pb_utils.Tensor(
+                "LABELS", batch_labels_np.astype(self.labels_dtype)
+            )
 
             batch_scores_np = np.stack(batch_scores)
-            batch_scores_pb = pb_utils.Tensor("SCORES", batch_scores_np.astype(self.scores_dtype))
+            batch_scores_pb = pb_utils.Tensor(
+                "SCORES", batch_scores_np.astype(self.scores_dtype)
+            )
 
             # Create InferenceResponse.
             inference_response = pb_utils.InferenceResponse(
