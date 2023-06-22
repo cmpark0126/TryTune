@@ -1,12 +1,15 @@
 from PIL import Image
-import numpy as np
+from locust import FastHttpUser, TaskSet, between, events, task
 import requests
 import torchvision.transforms as T
 
 API_URL = "http://0.0.0.0:80"
 TRITON_URL = "http://0.0.0.0:80"
 
-if __name__ == "__main__":
+
+@events.test_start.add_listener
+def on_test_start(**kw):  # type: ignore
+    print("test is starting")
     response = requests.delete(API_URL + "/bls/clear")
     assert response.status_code == 200, response.content
     response = requests.delete(API_URL + "/modules/clear")
@@ -68,37 +71,47 @@ if __name__ == "__main__":
     response = requests.post(API_URL + "/scheduler/set", json=scheduler_schema)
     assert response.status_code == 200, response.content
 
-    # Load input image
-    img_pil = Image.open("../../assets/FudanPed00054.png").convert("RGB")
-    transform = T.Compose([T.ToTensor()])
-    img = transform(img_pil)
-    batch_img = img.unsqueeze(0)
 
-    infer_schema = {
-        "target": "objdtc_clsfy_bls.py",
-        "inputs": {
-            "p_image": {
-                "data": batch_img.numpy().tolist(),
-                "shape": batch_img.shape,
-            }
-        },
-    }
-    response = requests.post(
-        API_URL + "/bls/objdtc_clsfy_bls.py/infer", json=infer_schema
-    )
-    assert response.status_code == 200, response.content
-    result = response.json()
-    assert "p_output__0" in result
-    classification_results = result["p_output__0"]
-    for result in classification_results:
-        array = np.array(result).reshape(1000)
-        top5 = np.argsort(array)
-        print(">> Result Top 5: [", end=" ")
-        for i in top5[::-1][:5]:
-            print(f"{i}: {array[i]}", end=" ")
-        print("] << ")
-
+@events.test_stop.add_listener
+def on_test_stop(**kw):  # type: ignore
     response = requests.delete(API_URL + "/bls/clear")
     assert response.status_code == 200, response.content
     response = requests.delete(API_URL + "/modules/clear")
     assert response.status_code == 200, response.content
+
+
+class UserBehavior(TaskSet):
+    def on_start(self):  # type: ignore
+        print("nested on start")
+        # Load input image
+        img_pil = Image.open("../../assets/FudanPed00054.png").convert("RGB")
+        transform = T.Compose([T.ToTensor()])
+        img = transform(img_pil)
+        batch_img = img.unsqueeze(0)
+
+        self.infer_schema = {
+            "target": "objdtc_clsfy_bls.py",
+            "inputs": {
+                "p_image": {
+                    "data": batch_img.numpy().tolist(),
+                    "shape": batch_img.shape,
+                }
+            },
+        }
+
+    def on_stop(self):  # type: ignore
+        print("nested on stop")
+
+    @task(1)
+    def infer(self):  # type: ignore
+        response = self.client.post(
+            "/bls/objdtc_clsfy_bls.py/infer", json=self.infer_schema
+        )
+        assert response.status_code == 200, response.content
+        result = response.json()
+        assert "p_output__0" in result
+
+
+class User(FastHttpUser):
+    tasks = {UserBehavior: 1}  # type: ignore
+    wait_time = between(0.1, 0.2)
