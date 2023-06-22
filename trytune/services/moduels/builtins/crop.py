@@ -33,7 +33,7 @@ class Crop(BuiltinModule):
             self.mode = "pad"
 
         if "resize_shape" in args:
-            self.resize_shape: Optional[List[int]] = args["resize_shape"]
+            self.resize_shape: Optional[List[int]] = list(args["resize_shape"])
             if self.resize_shape is not None:
                 # FIXME: raise exception
                 assert len(self.resize_shape) == 2
