@@ -70,9 +70,7 @@ async def execute(tensors: Any) -> Any:
         inputs = {"input__0": cropped_image}
         output_map = {"output__0": {"name": f"output__0_{i}"}}
         asyncio.create_task(
-            infer_module_with_async_queue(
-                "classifier_module", inputs, output_map, queue
-            )
+            infer_module_with_async_queue("resnet50", inputs, output_map, queue)
         )
 
     clsfy_results = []

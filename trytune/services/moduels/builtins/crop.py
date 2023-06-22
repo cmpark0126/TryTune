@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import cv2
 import numpy as np
@@ -31,6 +31,15 @@ class Crop(BuiltinModule):
         else:
             args["mode"] = "pad"
             self.mode = "pad"
+
+        if "resize_shape" in args:
+            self.resize_shape: Optional[List[int]] = args["resize_shape"]
+            if self.resize_shape is not None:
+                # FIXME: raise exception
+                assert len(self.resize_shape) == 2
+        else:
+            args["resize_shape"] = None
+            self.resize_shape = None
 
         self.args = args
         pass
@@ -90,9 +99,14 @@ class Crop(BuiltinModule):
                 for output in outputs
             ]
         elif self.mode == "resize":
+            if self.resize_shape is None:
+                w, h = max_w, max_h
+            else:
+                w, h = self.resize_shape[0], self.resize_shape[1]
+
             _outputs = [
                 np.transpose(
-                    cv2.resize(np.transpose(output, (1, 2, 0)), (max_w, max_h)),
+                    cv2.resize(np.transpose(output, (1, 2, 0)), (w, h)),
                     (2, 0, 1),
                 )
                 for output in outputs
@@ -116,6 +130,7 @@ class Crop(BuiltinModule):
                 "threshold": "Optional[int]",
                 "max_nums": "Optional[int]",
                 "mode": "pad or resize",
+                "resize_shape": "Optional[List[int]], if mode is resize, [width, height]",
             }
 
         return {

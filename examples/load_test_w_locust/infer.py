@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # crop_module_metadata = response.json()
     # print(crop_module_metadata)
 
-    classifier_module = "classifier_module"
+    classifier_module = "resnet50"
     add_module_schema = {
         "name": classifier_module,
         "type": "builtin",

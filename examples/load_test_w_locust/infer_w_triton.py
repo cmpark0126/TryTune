@@ -3,7 +3,8 @@ import numpy as np
 import requests
 import torchvision.transforms as T
 
-API_URL = "http://0.0.0.0:80"
+API_URL = "http://k8s-ingressn-ingressn-0db9efc659-bb278a56082e1f9f.elb.us-east-1.amazonaws.com:80/trytune"
+TRITON_URL = "http://k8s-ingressn-ingressn-0db9efc659-bb278a56082e1f9f.elb.us-east-1.amazonaws.com:80/triton"
 
 if __name__ == "__main__":
     response = requests.delete(API_URL + "/bls/clear")
@@ -39,11 +40,13 @@ if __name__ == "__main__":
     # crop_module_metadata = response.json()
     # print(crop_module_metadata)
 
-    classifier_module = "classifier_module"
+    classifier_module = "resnet50"
     add_module_schema = {
         "name": classifier_module,
-        "type": "builtin",
-        "builtin_args": {"target": "Resnet50FromTorchHub"},
+        "type": "triton",
+        "urls": {
+            "g4dn.xlarge": TRITON_URL,
+        },
     }
 
     response = requests.post(API_URL + "/modules/add", json=add_module_schema)
