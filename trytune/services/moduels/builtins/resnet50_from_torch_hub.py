@@ -36,7 +36,7 @@ class Resnet50FromTorchHub(BuiltinModule):
 
         return {
             "inputs": [
-                {"name": "input__0", "datatype": "FP32", "shape": [3, 244, 244]},
+                {"name": "input__0", "datatype": "FP32", "shape": [3, 224, 224]},
             ],
             "outputs": [
                 {"name": "output__0", "datatype": "FP32", "shape": [1, 1000]},

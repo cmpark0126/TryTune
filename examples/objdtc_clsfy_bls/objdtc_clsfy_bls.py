@@ -77,6 +77,8 @@ async def execute(tensors: Any) -> Any:
     clsfy_results = []
     for _ in range(num_of_cropped_images):
         event = await queue.get()
+        if "error" in event:
+            raise event["error"]
         # print(event["name"])
         clsfy_results.append(event["tensor"].tolist())
 
