@@ -67,6 +67,7 @@ async def execute(tensors: Any) -> Any:
     # NOTE: parallel execution with async queue
     num_of_cropped_images = len(cropped_images)
     for i, cropped_image in enumerate(cropped_images):
+        cropped_image = cropped_image.reshape(cropped_image.shape[1:])
         inputs = {"input__0": cropped_image}
         output_map = {"output__0": {"name": f"output__0_{i}"}}
         asyncio.create_task(

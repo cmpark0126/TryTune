@@ -19,6 +19,7 @@ class Resnet50FromTorchHub(BuiltinModule):
     async def execute(self, requests: Any) -> Any:
         inputs = requests["inputs"]
         input__0 = torch.from_numpy(inputs["input__0"])
+        input__0.unsqueeze_(0)
 
         output__0 = self.model(input__0)
 
@@ -35,7 +36,7 @@ class Resnet50FromTorchHub(BuiltinModule):
 
         return {
             "inputs": [
-                {"name": "input__0", "datatype": "FP32", "shape": [1, 3, -1, -1]},
+                {"name": "input__0", "datatype": "FP32", "shape": [3, 244, 244]},
             ],
             "outputs": [
                 {"name": "output__0", "datatype": "FP32", "shape": [1, 1000]},

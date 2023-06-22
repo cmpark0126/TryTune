@@ -34,6 +34,8 @@ def on_test_start(**kw):  # type: ignore
             "target": "Crop",
             "threshold": 0.9,
             "label": 1,  # label 1 is person
+            "mode": "resize",
+            "resize_shape": [224, 224],
         },
     }
 
