@@ -23,7 +23,6 @@ async def test_builtin_resnet50_from_torch_hub() -> None:  # type: ignore
         ]
     )
     img = transform(img_pil)
-    img.unsqueeze_(0)
 
     builtin = Resnet50FromTorchHub()
     await builtin.initialize({})

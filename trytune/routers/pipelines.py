@@ -141,6 +141,9 @@ async def infer(pipeline: str, schema: common.InferSchema) -> Any:
     tensors: Dict[str, Any] = {}
     while True:
         event = await queue.get()
+        if "error" in event:
+            raise event["error"]
+
         assert event["name"] not in tensors
         tensors[event["name"]] = event["tensor"]
 

@@ -115,7 +115,11 @@ async def infer_module_with_async_queue(
     output_map: Dict[str, Any],
     queue: asyncio.Queue,
 ) -> None:
-    outputs = await infer_module(module, inputs)
+    try:
+        outputs = await infer_module(module, inputs)
+    except HTTPException as e:
+        await queue.put({"error": e})
+        return
 
     for src, dst in output_map.items():
         data = outputs[src]

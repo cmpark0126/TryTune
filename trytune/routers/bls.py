@@ -40,7 +40,8 @@ async def get_list() -> Any:
 
 @router.delete("/bls/clear")
 async def clear() -> Any:
-    os.removedirs(temp_dir.get_path())
+    shutil.rmtree(temp_dir.get_path())
+    os.mkdir(temp_dir.get_path())
     return {"message": "All Bls cleared"}
 
 

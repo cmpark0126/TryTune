@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, validator
 
@@ -58,7 +58,7 @@ class AddModuleSchema(BaseModel):
     name: str
     type: ModuleTypeSchema
     urls: Optional[Dict[str, str]] = None
-    builtin_args: Optional[Dict[str, str]] = None
+    builtin_args: Optional[Dict[str, Any]] = None
 
     @validator("urls")
     def validate_urls(cls, urls, values):  # type: ignore

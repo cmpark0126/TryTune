@@ -29,7 +29,8 @@ def check_datatypes(data: dict) -> None:
 
 @router.get("/modules/avaliable_builtins")
 async def get_available_builtins() -> Any:
-    return modules.available_builtins
+    # return modules.available_builtins
+    raise NotImplementedError
 
 
 @router.get("/modules/list")
